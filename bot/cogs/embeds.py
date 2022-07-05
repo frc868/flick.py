@@ -21,14 +21,28 @@ class Embeds(commands.Cog):
     async def editembed_menu(
         self, interaction: discord.Interaction, message: discord.Message
     ) -> None:
-        view = EmbedEditor(message.channel, message)
-        await interaction.response.send_message(embeds=view.get_embeds(), view=view)
+        if message.author.id != self.bot.user.id:
+            await interaction.response.send_message(
+                embed=tools.create_error_embed(
+                    "That message was not sent by this bot."
+                ),
+                ephemeral=True,
+            )
+            return
+        if interaction.user.guild_permissions.manage_messages:
+            view = EmbedEditor(interaction.user, message)
+            await interaction.response.send_message(embeds=view.get_embeds(), view=view)
+        else:
+            await interaction.response.send_message(
+                embed=tools.create_error_embed("You can't do that."), ephemeral=True
+            )
 
     @commands.hybrid_command(
         name="sendembed",
         description="Send an embed message from the bot.",
     )
     @app_commands.describe(channel="The channel to send the embed to.")
+    @commands.has_permissions(manage_messages=True)
     async def sendembed(
         self, ctx: commands.Context, channel: discord.TextChannel | None = None
     ) -> None:
@@ -44,6 +58,7 @@ class Embeds(commands.Cog):
         message_id="The ID of the mesasge that contains the embed you want to edit.",
         # embed_number="The number embed you want to edit (1 for the 1st, 2 for the 2nd, etc).",
     )
+    @commands.has_permissions(manage_messages=True)
     async def editembed(
         self,
         ctx: commands.Context,
@@ -60,7 +75,8 @@ class Embeds(commands.Cog):
             await ctx.send(
                 embed=tools.create_error_embed("That message was not sent by this bot.")
             )
-        view = EmbedEditor(ctx.author, message.channel, message)
+            return
+        view = EmbedEditor(ctx.author, message)
         await ctx.send(embeds=view.get_embeds(), view=view)
 
 
