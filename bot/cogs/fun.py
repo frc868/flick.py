@@ -112,7 +112,7 @@ class Fun(commands.Cog, name="fun"):
                     await ctx.send(embed=embed)
 
     @commands.hybrid_command(name="xkcd", description="Launch an XKCD browser.")
-    async def xkcd_(self, ctx: commands.Context) -> None:
+    async def xkcd_(self, ctx: commands.Context, num: int | None = None) -> None:
         def callback(page: int) -> discord.Embed:
             comic = xkcd.getComic(page + 1)
             embed = tools.create_embed(f"XKCD {page+1}: {comic.getTitle()}")
@@ -120,7 +120,7 @@ class Fun(commands.Cog, name="fun"):
             embed.add_field(name="Alt Text", value=comic.getAltText())
             return embed
 
-        page_idx = xkcd.getLatestComicNum() - 1
+        page_idx = num - 1 if num else xkcd.getLatestComicNum() - 1
         view = tools.EmbedButtonPaginator(
             ctx.author, [None] * (page_idx + 1), page_idx, callback
         )
