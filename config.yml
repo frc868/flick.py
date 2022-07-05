@@ -1,0 +1,24 @@
+---
+bots:
+  - name: flick.py
+    prefix: ;
+    max_messages: 10000
+    disabled_mentions:
+      everyone: false
+    token:
+      name: TOKEN
+      value:
+      env: true
+    description: 
+    extensions:
+      - bot.cogs.core.events
+      - bot.cogs.core.info
+      - bot.cogs.fun
+      - bot.cogs.math
+      - bot.cogs.games
+      - bot.cogs.voting
+      - bot.cogs.techhounds
+      - bot.cogs.embeds
+      - bot.cogs.admin
+      - bot.cogs.moderation
+    use_default_help_command: false
