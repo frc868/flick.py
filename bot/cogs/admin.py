@@ -50,7 +50,7 @@ class Admin(commands.Cog):
         self, ctx: commands.Context, channel: discord.TextChannel
     ) -> None:
         embed = discord.Embed(
-            title="Division",
+            title="Pronouns",
             description="Please select your pronouns if you feel comfortable doing so.",
             colour=discord.Colour.from_str("#FBBF05"),
         )
