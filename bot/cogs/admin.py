@@ -82,7 +82,7 @@ class Admin(commands.Cog):
     async def reload(self, ctx: commands.Context) -> None:
         await ctx.send("Reloading bot.")
         self.logger.info("Reloading bot.")
-        for extension_name, extension in self.bot.extensions:
+        for extension_name, extension in self.bot.extensions.items():
             self.logger.info(f"Reloading {extension_name}.")
             await self.bot.reload_extension(extension_name)
 
