@@ -1,12 +1,8 @@
-import asyncio
 import logging
-import random
 import subprocess
 
-import aiohttp
 import discord
 from discord.ext import commands
-from sympy import capture
 
 import bot.cogs.techhounds
 from bot.helpers import tools
