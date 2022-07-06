@@ -1,10 +1,12 @@
 import asyncio
 import logging
 import random
+import subprocess
 
 import aiohttp
 import discord
 from discord.ext import commands
+from sympy import capture
 
 import bot.cogs.techhounds
 from bot.helpers import tools
@@ -90,8 +92,14 @@ class Admin(commands.Cog):
         await ctx.send("Reloading complete.")
 
     @commands.command()
-    async def reload_test(self, ctx):
-        await ctx.send("if this works after reload then cool")
+    @commands.is_owner()
+    async def gitpull(self, ctx: commands.Context) -> None:
+        await ctx.send("Pulling from Git.")
+        await ctx.send(
+            subprocess.run(
+                "git pull", shell=True, text=True, capture_output=True
+            ).stdout
+        )
 
 
 async def setup(bot: commands.Bot) -> None:
