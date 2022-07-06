@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import random
 
 import aiohttp
@@ -12,6 +13,9 @@ from bot.helpers import tools
 class Admin(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.logger = logging.LoggerAdapter(
+            logging.getLogger(__name__), {"botname": self.bot.name}
+        )
 
     @commands.command()
     @commands.is_owner()
@@ -69,9 +73,20 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def sync(self, ctx):
+    async def sync(self, ctx: commands.Context) -> None:
         await self.bot.tree.sync()
         await ctx.send("Synced application commands.")
+
+    @commands.command()
+    @commands.is_owner()
+    async def reload(self, ctx: commands.Context) -> None:
+        await ctx.send("Reloading bot.")
+        self.logger.info("Reloading bot.")
+        for extension_name, extension in self.bot.extensions:
+            self.logger.info(f"Reloading {extension_name}.")
+            await self.bot.reload_extension(extension_name)
+
+        await ctx.send("Reloading complete.")
 
 
 async def setup(bot: commands.Bot) -> None:
