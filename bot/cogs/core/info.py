@@ -37,16 +37,18 @@ class Info(commands.Cog):
     @commands.hybrid_command(description="Get help for the bot.")
     async def help(self, ctx: commands.Context) -> None:
         embeds = []
-        commands_list = sorted(
-            list(self.bot.walk_commands()), key=lambda command: command.name
-        )
+        commands_list = [
+            command
+            for command in sorted(
+                list(self.bot.walk_commands()), key=lambda command: command.name
+            )
+            if command.cog_name != "Admin"
+        ]
         for commands in [
             commands_list[i : i + 8] for i in range(0, len(commands_list), 8)
         ]:  # splits the commands into groups of 8
             embed = tools.create_embed(title="Bot Commands")
-            for command in [
-                command for command in commands if command.cog_name != "Admin"
-            ]:
+            for command in commands:
                 usage = [";" + command.name]
                 for name, param in command.params.items():
                     usage += [f"<{name}>" if param.required else f"[{name}]"]
