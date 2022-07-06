@@ -82,11 +82,16 @@ class Admin(commands.Cog):
     async def reload(self, ctx: commands.Context) -> None:
         await ctx.send("Reloading bot.")
         self.logger.info("Reloading bot.")
-        for extension_name, extension in self.bot.extensions.items():
-            self.logger.info(f"Reloading {extension_name}.")
-            await self.bot.reload_extension(extension_name)
+        extensions = [name for name, extension in self.bot.extensions.items()]
+        for extension in extensions:
+            self.logger.info(f"Reloading {extension}.")
+            await self.bot.reload_extension(extension)
 
         await ctx.send("Reloading complete.")
+
+    @commands.command()
+    async def reload_test(self, ctx):
+        await ctx.send("if this works after reload then cool")
 
 
 async def setup(bot: commands.Bot) -> None:
