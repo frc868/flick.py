@@ -146,18 +146,21 @@ class EmbedEditor(tools.ViewBase):
                 )
                 self.interaction = interaction
 
-        for i in range(len(self.embed.fields)):
-            button = discord.ui.Button(label=f"Field {i+1}", row=2)
-
+        def generate_callback(index: int):
             async def callback(interaction: discord.Interaction) -> None:
-                modal = FieldButtonModal(self.embed, i)
+                modal = FieldButtonModal(self.embed, index)
                 await interaction.response.send_modal(modal)
                 await modal.wait()
                 await modal.interaction.response.edit_message(
                     embeds=self.get_embeds(), view=self
                 )
 
-            button.callback = callback
+            return callback
+
+        for i in range(len(self.embed.fields)):
+            button = discord.ui.Button(label=f"Field {i+1}", row=2)
+
+            button.callback = generate_callback(i)
             self.add_item(button)
 
     @discord.ui.button(label="Text/Color")
