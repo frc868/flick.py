@@ -122,7 +122,7 @@ class Fun(commands.Cog, name="fun"):
 
         page_idx = num - 1 if num else xkcd.getLatestComicNum() - 1
         view = tools.EmbedButtonPaginator(
-            ctx.author, [None] * (page_idx + 1), page_idx, callback
+            ctx.author, [None] * xkcd.getLatestComicNum(), page_idx, callback
         )
         view.msg = await ctx.send(
             embed=callback(page_idx),
