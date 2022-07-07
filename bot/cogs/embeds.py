@@ -100,6 +100,7 @@ class EmbedEditor(tools.ViewBase):
             self.message = target
             self.channel = target.channel
             self.embed = self.message.embeds[embed_number]
+        self.update_field_buttons()
 
     def get_embeds(self) -> list[discord.Embed]:
         instructions = discord.Embed(
@@ -126,7 +127,9 @@ class EmbedEditor(tools.ViewBase):
             index: int
             interaction: discord.Interaction
             name = discord.ui.TextInput(label="Name")
-            text = discord.ui.TextInput(label="Text")
+            text = discord.ui.TextInput(
+                label="Text", style=discord.TextStyle.long, max_length=1024
+            )
             inline = discord.ui.TextInput(label="Is Inline")
 
             def __init__(self, embed: discord.Embed, index: int) -> None:
@@ -204,7 +207,8 @@ class EmbedEditor(tools.ViewBase):
                 self.embed.title = self.title_.value
                 self.embed.description = self.description.value
                 self.embed.url = self.url.value
-                self.embed.colour = discord.Colour.from_str(self.color.value)
+                if self.color.value:
+                    self.embed.colour = discord.Colour.from_str(self.color.value)
                 self.interaction = interaction
 
         modal = TextColorModal(self.embed)
