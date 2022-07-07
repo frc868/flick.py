@@ -77,6 +77,16 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
+    async def gitpull(self, ctx: commands.Context) -> None:
+        await ctx.send("Pulling from Git.")
+        await ctx.send(
+            subprocess.run(
+                "git pull", shell=True, text=True, capture_output=True
+            ).stdout
+        )
+
+    @commands.command()
+    @commands.is_owner()
     async def reload(self, ctx: commands.Context) -> None:
         await ctx.send("Reloading bot.")
         self.logger.info("Reloading bot.")
@@ -89,13 +99,9 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def gitpull(self, ctx: commands.Context) -> None:
-        await ctx.send("Pulling from Git.")
-        await ctx.send(
-            subprocess.run(
-                "git pull", shell=True, text=True, capture_output=True
-            ).stdout
-        )
+    async def update(self, ctx: commands.Context) -> None:
+        await self.gitpull(ctx)
+        await self.reload(ctx)
 
 
 async def setup(bot: commands.Bot) -> None:
