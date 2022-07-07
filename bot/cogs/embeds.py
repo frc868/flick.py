@@ -307,7 +307,7 @@ class EmbedEditor(tools.ViewBase):
         index = discord.ui.TextInput(label="Index", required=True)
 
         def __init__(self, title: str) -> None:
-            super().__init__(self, title=title)
+            super().__init__(title=title)
 
         async def on_submit(self, interaction: discord.Interaction) -> None:
             try:
