@@ -121,33 +121,33 @@ class EmbedEditor(tools.ViewBase):
         for button in field_buttons:
             self.remove_item(button)
 
+        class FieldButtonModal(discord.ui.Modal):
+            embed: discord.Embed
+            index: int
+            interaction: discord.Interaction
+            name = discord.ui.TextInput(label="Name")
+            text = discord.ui.TextInput(label="Text")
+            inline = discord.ui.TextInput(label="Is Inline")
+
+            def __init__(self, embed: discord.Embed, index: int) -> None:
+                super().__init__(title=f"Edit Field {index+1}")
+                self.embed = embed
+                self.index = index
+                self.name.default = self.embed.fields[index].name
+                self.text.default = self.embed.fields[index].value
+                self.inline.default = str(self.embed.fields[index].inline)
+
+            async def on_submit(self, interaction: discord.Interaction) -> None:
+                self.embed.set_field_at(
+                    self.index,
+                    name=self.name.value,
+                    value=self.text.value,
+                    inline=self.inline.value.lower() in ["true", "yes", "y"],
+                )
+                self.interaction = interaction
+
         for i in range(len(self.embed.fields)):
             button = discord.ui.Button(label=f"Field {i+1}", row=2)
-
-            class FieldButtonModal(discord.ui.Modal, title=f"Edit Field {i+1}"):
-                embed: discord.Embed
-                index: int
-                interaction: discord.Interaction
-                name = discord.ui.TextInput(label="Name")
-                text = discord.ui.TextInput(label="Text")
-                inline = discord.ui.TextInput(label="Is Inline")
-
-                def __init__(self, embed: discord.Embed, index: int) -> None:
-                    super().__init__()
-                    self.embed = embed
-                    self.index = index
-                    self.name.default = self.embed.fields[index].name
-                    self.text.default = self.embed.fields[index].value
-                    self.inline.default = str(self.embed.fields[index].inline)
-
-                async def on_submit(self, interaction: discord.Interaction) -> None:
-                    self.embed.set_field_at(
-                        self.index,
-                        name=self.name.value,
-                        value=self.text.value,
-                        inline=self.inline.value.lower() in ["true", "yes", "y"],
-                    )
-                    self.interaction = interaction
 
             async def callback(interaction: discord.Interaction) -> None:
                 modal = FieldButtonModal(self.embed, i)
