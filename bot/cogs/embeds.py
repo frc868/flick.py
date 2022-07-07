@@ -95,6 +95,7 @@ class EmbedEditor(tools.ViewBase):
         if isinstance(target, discord.TextChannel):
             self.channel = target
             self.embed = discord.Embed(description="Placeholder Text")
+            self.message = None
         elif isinstance(target, discord.Message):
             self.message = target
             self.channel = target.channel
