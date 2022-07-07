@@ -62,6 +62,14 @@ class Info(commands.Cog):
         view = tools.EmbedButtonPaginator(ctx.author, embeds)
         view.msg = await ctx.send(embed=embeds[0], view=view)
 
+    @commands.hybrid_command(description="Get the link for the repo.")
+    async def repo(self, ctx: commands.Context) -> None:
+        await ctx.send(
+            embed=tools.create_embed(
+                "Flick's repo", "https://github.com/frc868/flick.py"
+            )
+        )
+
 
 async def setup(bot) -> None:
     await bot.add_cog(Info(bot))
