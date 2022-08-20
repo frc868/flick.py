@@ -105,7 +105,7 @@ class Events(commands.Cog):
     async def on_member_join(self, member: discord.Member) -> None:
         channel = member.guild.get_channel(451027883054465055)
         embed = discord.Embed(
-            description=f"Welcome to the TechHOUNDS Discord, {member.name}.\nPlease read the <#610974359116316722>.\nTo enter the server, please go to <#993980468934488074> to set your division, name, and pronouns."
+            description=f"Welcome to the TechHOUNDS Discord, {member.name}.\nPlease read the <#994706215462523010>.\nTo enter the server, please go to <#993980468934488074> to set your division, name, and pronouns."
         )
         await channel.send(embed=embed)
 
