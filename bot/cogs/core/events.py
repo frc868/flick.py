@@ -5,11 +5,9 @@ import time
 import discord
 from discord.ext import commands
 
-from bot.cogs.techhounds import (
-    NameView,
-    create_persistent_division_selector,
-    create_persistent_pronoun_selector,
-)
+from bot.cogs.techhounds import (NameView, create_persistent_division_selector,
+                                 create_persistent_grade_level_selector,
+                                 create_persistent_pronoun_selector)
 from bot.helpers import tools
 
 clogger = logging.getLogger("command")
@@ -41,6 +39,9 @@ class Events(commands.Cog):
         self.bot.add_view(NameView())
         self.bot.add_view(
             create_persistent_pronoun_selector(self.bot.get_guild(403364109409845248))
+        )
+        self.bot.add_view(
+            create_persistent_grade_level_selector(self.bot.get_guild(403364109409845248))
         )
 
     @commands.Cog.listener(name="on_connect")

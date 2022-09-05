@@ -4,19 +4,6 @@ from discord.ext import commands
 
 from bot.helpers import tools
 
-DIVISION_ROLE_IDS: dict[int, str] = {
-    403694370135605249: "Robot Ops",
-    403694172814573595: "Programming/Electrical",
-    403694622544494593: "Construction",
-    403694722759131138: "PR",
-    451039138100281344: "Undecided",
-}
-DIVISION_ROLE_IDS: list[int] = []
-
-
-class DivisionRoleSelector(tools.PersistentRoleSelector):  # for persistence purposes
-    pass
-
 
 class NameModal(discord.ui.Modal, title="Name"):
     name = discord.ui.TextInput(label="Enter your name (first last)")
@@ -60,11 +47,6 @@ class NameView(discord.ui.View):
         await interaction.response.send_modal(modal)
 
 
-class PronounView(discord.ui.View):
-    def __init__(self) -> None:
-        super().__init__(timeout=None)
-
-
 def create_persistent_division_selector(
     guild: discord.Guild,
 ) -> tools.PersistentRoleSelector:
@@ -94,6 +76,21 @@ def create_persistent_pronoun_selector(
         ],
         "Pronouns",
         custom_id_prefix="pronoun",
+    )
+
+def create_persistent_grade_level_selector(
+    guild: discord.Guild,
+) -> tools.PersistentRoleSelector:
+    return tools.PersistentRoleSelector(
+        guild,
+        [
+            1014547797132972052,
+            1014547916473503885,
+            1014547950397034617,
+            1014547985348186284
+        ],
+        "Grade Level",
+        custom_id_prefix="gradelevel",
     )
 
 

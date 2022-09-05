@@ -64,6 +64,25 @@ class Admin(commands.Cog):
             ),
         )
 
+
+    @commands.command()
+    @commands.is_owner()
+    async def preparegradelevel(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ) -> None:
+        embed = discord.Embed(
+            title="Grade Level",
+            description="Please select your grade level.",
+            colour=discord.Colour.from_str("#FBBF05"),
+        )
+
+        await channel.send(
+            embed=embed,
+            view=bot.cogs.techhounds.create_persistent_grade_level_selector(
+                self.bot.get_guild(403364109409845248)
+            ),
+        )
+
     @commands.command()
     @commands.is_owner()
     async def eval(self, ctx: commands.Context, *, arg: str) -> None:
