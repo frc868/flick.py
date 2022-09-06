@@ -21,4 +21,5 @@ bots:
       - bot.cogs.embeds
       - bot.cogs.admin
       - bot.cogs.moderation
+      - bot.cogs.modlogs
     use_default_help_command: false
