@@ -122,6 +122,11 @@ class Admin(commands.Cog):
         await self.gitpull(ctx)
         await self.reload(ctx)
 
+    @commands.command()
+    @commands.is_owner()
+    async def sync(self, ctx: commands.Context) -> None:
+        await self.bot.tree.sync()
+
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Admin(bot))
