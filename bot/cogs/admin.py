@@ -123,7 +123,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def update_website(self, ctx: commands.Context) -> None:
+    async def updatewebsite(self, ctx: commands.Context) -> None:
         await ctx.send("Pulling from Git.")
         await ctx.send(
             subprocess.run(
