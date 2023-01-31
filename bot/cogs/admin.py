@@ -64,7 +64,6 @@ class Admin(commands.Cog):
             ),
         )
 
-
     @commands.command()
     @commands.is_owner()
     async def preparegradelevel(
@@ -121,6 +120,30 @@ class Admin(commands.Cog):
     async def update(self, ctx: commands.Context) -> None:
         await self.gitpull(ctx)
         await self.reload(ctx)
+
+    @commands.command()
+    @commands.is_owner()
+    async def update_website(self, ctx: commands.Context) -> None:
+        await ctx.send("Pulling from Git.")
+        await ctx.send(
+            subprocess.run(
+                "git pull",
+                shell=True,
+                text=True,
+                capture_output=True,
+                cwd="/opt/website",
+            ).stdout
+        )
+
+        await ctx.send("Deploying to /var/www/html.")
+        subprocess.run(
+            "./deploy.sh",
+            shell=True,
+            text=True,
+            capture_output=True,
+            cwd="/home/dr",
+        )
+        await ctx.send("Deployed.")
 
     @commands.command()
     @commands.is_owner()
