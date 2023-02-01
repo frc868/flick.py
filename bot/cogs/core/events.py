@@ -31,8 +31,8 @@ class Events(commands.Cog):
 
         await self.bot.change_presence(
             activity=discord.Activity(
-                type=discord.ActivityType.playing,
-                name=f"Build season woot woot",
+                type=discord.ActivityType.watching,
+                name=f"robot ops",
             )
         )
 
