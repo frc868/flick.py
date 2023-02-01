@@ -15,8 +15,12 @@ class Admin(commands.Cog):
             logging.getLogger(__name__), {"botname": self.bot.name}
         )
 
+    def admin_access(ctx: commands.Context) -> bool:
+        # superpenguin612#4406, acr#7356
+        return ctx.author.id in [688530998920871969, 321378326273064961]
+
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def preparedivision(
         self, ctx: commands.Context, channel: discord.TextChannel
     ) -> None:
@@ -34,7 +38,7 @@ class Admin(commands.Cog):
         )
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def preparename(
         self, ctx: commands.Context, channel: discord.TextChannel
     ) -> None:
@@ -47,7 +51,7 @@ class Admin(commands.Cog):
         await channel.send(embed=embed, view=bot.cogs.techhounds.NameView())
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def preparepronoun(
         self, ctx: commands.Context, channel: discord.TextChannel
     ) -> None:
@@ -65,7 +69,7 @@ class Admin(commands.Cog):
         )
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def preparegradelevel(
         self, ctx: commands.Context, channel: discord.TextChannel
     ) -> None:
@@ -83,18 +87,18 @@ class Admin(commands.Cog):
         )
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def eval(self, ctx: commands.Context, *, arg: str) -> None:
         await ctx.send(eval(arg))
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def sync(self, ctx: commands.Context) -> None:
         await self.bot.tree.sync()
         await ctx.send("Synced application commands.")
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def gitpull(self, ctx: commands.Context) -> None:
         await ctx.send("Pulling from Git.")
         await ctx.send(
@@ -104,7 +108,7 @@ class Admin(commands.Cog):
         )
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def reload(self, ctx: commands.Context) -> None:
         await ctx.send("Reloading bot.")
         self.logger.info("Reloading bot.")
@@ -116,13 +120,13 @@ class Admin(commands.Cog):
         await ctx.send("Reloading complete.")
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def update(self, ctx: commands.Context) -> None:
         await self.gitpull(ctx)
         await self.reload(ctx)
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def updatewebsite(self, ctx: commands.Context) -> None:
         await ctx.send("Pulling from Git.")
         await ctx.send(
@@ -146,7 +150,7 @@ class Admin(commands.Cog):
         await ctx.send("Deployed.")
 
     @commands.command()
-    @commands.is_owner()
+    @commands.check(admin_access)
     async def sync(self, ctx: commands.Context) -> None:
         await self.bot.tree.sync()
 
