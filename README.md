@@ -1,2 +1,5 @@
 # flick.py
-A Python rendition of Flick! This might become the new version of Flick on the TechHOUNDS Discord server.
+
+<img src="https://raw.githubusercontent.com/frc868/flick/master/icon.png" alt="Flick by Bryce" align="right" width="256px">
+
+A Python rendition of Flick, a multi-purpose bot for the TechHOUNDS Discord.
