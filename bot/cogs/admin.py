@@ -154,6 +154,58 @@ class Admin(commands.Cog):
     async def sync(self, ctx: commands.Context) -> None:
         await self.bot.tree.sync()
 
+    @commands.command()
+    @commands.check(admin_access)
+    async def cycleyearroles(self, ctx: commands.Context) -> None:
+        class Roles:
+            freshman = 1014547797132972052
+            sophomore = 1014547916473503885
+            junior = 1014547950397034617
+            senior = 1014547985348186284
+
+        def check(msg):
+            return (
+                msg.author == ctx.author
+                and msg.channel == ctx.channel
+                and msg.content.lower() in ["y", "n"]
+            )
+
+        async def ask():
+            msg = await self.bot.wait_for("message", check=check)
+            if msg.content.lower() == "y":
+                return True
+            else:
+                return False
+
+        for message, old_role_id, new_role_id in [
+            (
+                "Transition year roles up for juniors? (y/n)",
+                Roles.junior,
+                Roles.senior,
+            ),
+            (
+                "Transition year roles up for sophomores? (y/n)",
+                Roles.sophomore,
+                Roles.junior,
+            ),
+            (
+                "Transition year roles up for freshmen? (y/n)",
+                Roles.freshman,
+                Roles.sophomore,
+            ),
+        ]:
+            await ctx.send(message)
+            resp = await ask()
+            if resp:
+                old_role = ctx.guild.get_role(old_role_id)
+                new_role = ctx.guild.get_role(new_role_id)
+                for member in old_role.members:
+                    await member.add_roles(new_role)
+                    await member.remove_roles(old_role)
+            else:
+                await ctx.send("Stopping.")
+                return
+
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Admin(bot))
