@@ -43,7 +43,12 @@ class ModeratedChatView(discord.ui.View):
         )
         await interaction.message.edit(embed=embed)
         await interaction.response.send_message(embed=embed)
+
         self.disable()
+        try:
+            await interaction.message.edit(view=self)
+        except:
+            pass
 
     def disable(self) -> None:
         for child in self.children:
