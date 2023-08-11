@@ -97,6 +97,10 @@ class Moderation(commands.Cog):
         )
         await message.pin()
 
+        await ctx.send(
+            embed=tools.create_embed("", desc="Moderated Chat created."), ephemeral=True
+        )
+
     # @purge.hybrid_command(name="user")
     # @commands.has_permissions(manage_messages=True)
     # @commands.bot_has_permissions(manage_messages=True)
