@@ -107,19 +107,19 @@ class ModLogs(commands.Cog):
         )
         await log_channel.send(embed=embed)
 
-    @commands.Cog.listener()
-    async def on_guild_channel_update(
-        self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel
-    ) -> None:
-        guild = before.guild
-        log_channel = guild.get_channel(self.log_channel_id)
+    # @commands.Cog.listener()
+    # async def on_guild_channel_update(
+    #     self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel
+    # ) -> None:
+    #     guild = before.guild
+    #     log_channel = guild.get_channel(self.log_channel_id)
 
-        embed = discord.Embed(
-            title=f"Channel Update",
-            description=f"{before.mention} has been updated.",
-            color=discord.Color.red(),
-        )
-        await log_channel.send(embed=embed)
+    #     embed = discord.Embed(
+    #         title=f"Channel Update",
+    #         description=f"{before.mention} has been updated.",
+    #         color=discord.Color.red(),
+    #     )
+    #     await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
