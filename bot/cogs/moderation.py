@@ -21,7 +21,7 @@ class ModeratedChatView(discord.ui.View):
         await interaction.response.send_message(
             role.mention,
             embed=tools.create_embed(
-                "Pinging adults.",
+                "Pinging adults",
                 desc=f"{role.mention}, you have been pinged because someone requested that adults be notified about this conversation.",
             ),
         )
@@ -33,11 +33,19 @@ class ModeratedChatView(discord.ui.View):
         )
         for user in self.users:
             perms = interaction.channel.overwrites_for(user)
-            perms.view_channel = False
+            perms.send_messages = False
+            perms.send_messages_in_threads = False
             await interaction.channel.set_permissions(user, overwrite=perms)
         await interaction.channel.edit(
             category=interaction.guild.get_channel(1139305639508721765)
         )
+
+        embed = tools.create_embed(
+            "Moderated Chat closed",
+            desc=f"This chat between {self.users[0].mention} and {self.users[1].mention} has been closed.",
+        )
+        await interaction.response.send_message(embed=embed)
+        await interaction.message.edit(embed=embed)
 
 
 class Moderation(commands.Cog):
@@ -82,7 +90,7 @@ class Moderation(commands.Cog):
         message: discord.Message = await channel.send(
             f"{ctx.author.mention} {user.mention}",
             embed=tools.create_embed(
-                "Moderated Chat created.",
+                "Moderated Chat created",
                 desc=f"{ctx.author.mention} created this channel to communicate with {user.mention}.\nViewable by coaches and leads.",
             ),
             view=ModeratedChatView([user, ctx.author]),
