@@ -69,14 +69,15 @@ class Moderation(commands.Cog):
 
     @commands.hybrid_command(description="Start a moderated DM with another user.")
     async def moderatedchat(self, ctx: commands.Context, user: discord.User):
+        print(user.name)
         category = ctx.guild.get_channel(1139007202166849566)  # moderated DMs category
         channel = await category.create_text_channel(
             f"moderated-{datetime.now().replace(microsecond=0).isoformat()}"
         )
-        for user in [user, ctx.author]:
-            perms = channel.overwrites_for(user)
+        for u in [user, ctx.author]:
+            perms = channel.overwrites_for(u)
             perms.view_channel = True
-            await channel.set_permissions(user, overwrite=perms)
+            await channel.set_permissions(u, overwrite=perms)
 
         message: discord.Message = await channel.send(
             f"{ctx.author.mention} {user.mention}",
