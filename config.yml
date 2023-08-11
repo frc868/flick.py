@@ -9,7 +9,7 @@ bots:
       name: TOKEN
       value:
       env: true
-    description: 
+    description:
     extensions:
       - bot.cogs.core.events
       - bot.cogs.core.info
@@ -22,4 +22,5 @@ bots:
       - bot.cogs.admin
       - bot.cogs.moderation
       - bot.cogs.modlogs
+      # - bot.cogs.mail
     use_default_help_command: false
