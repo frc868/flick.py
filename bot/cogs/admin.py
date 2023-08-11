@@ -153,6 +153,7 @@ class Admin(commands.Cog):
     @commands.check(admin_access)
     async def sync(self, ctx: commands.Context) -> None:
         await self.bot.tree.sync()
+        await ctx.send("Synced.")
 
     @commands.command()
     @commands.check(admin_access)
