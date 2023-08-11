@@ -28,9 +28,6 @@ class ModeratedChatView(discord.ui.View):
 
     @discord.ui.button(label="Close Channel", style=discord.ButtonStyle.red)
     async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "The channel is closed.", ephemeral=True
-        )
         for user in self.users:
             perms = interaction.channel.overwrites_for(user)
             perms.send_messages = False
@@ -44,8 +41,8 @@ class ModeratedChatView(discord.ui.View):
             "Moderated Chat closed",
             desc=f"This chat between {self.users[0].mention} and {self.users[1].mention} has been closed.",
         )
-        await interaction.response.send_message(embed=embed)
         await interaction.message.edit(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
 class Moderation(commands.Cog):
@@ -77,7 +74,6 @@ class Moderation(commands.Cog):
 
     @commands.hybrid_command(description="Start a moderated DM with another user.")
     async def moderatedchat(self, ctx: commands.Context, user: discord.User):
-        print(user.name)
         category = ctx.guild.get_channel(1139007202166849566)  # moderated DMs category
         channel = await category.create_text_channel(
             f"moderated-{datetime.now().replace(microsecond=0).isoformat()}"
