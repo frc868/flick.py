@@ -3,11 +3,46 @@ from discord import app_commands
 from discord.ext import commands
 
 from bot.helpers import tools
+from datetime import datetime
 
-# TODO: maybe make the rest of the moderation suite work? not really a big deal though
+
+class ModeratedChatView(discord.ui.View):
+    users: list[discord.User]
+
+    def __init__(self, users: list[discord.User]):
+        self.users = users
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Ping Adults", style=discord.ButtonStyle.blurple)
+    async def pingadults(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        role = interaction.guild.get_role(1057724286837719041)
+        await interaction.response.send_message(
+            role.mention,
+            embed=tools.create_embed(
+                "Pinging adults.",
+                desc=f"{role.mention}, you have been pinged because someone requested that adults be notified about this conversation.",
+            ),
+        )
+
+    @discord.ui.button(label="Close Channel", style=discord.ButtonStyle.red)
+    async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "The channel is closed.", ephemeral=True
+        )
+        for user in self.users:
+            perms = interaction.channel.overwrites_for(user)
+            perms.view_channel = False
+            await interaction.channel.set_permissions(user, overwrite=perms)
+        await interaction.channel.edit(
+            category=interaction.guild.get_channel(1139305639508721765)
+        )
 
 
 class Moderation(commands.Cog):
+    open_dms = []
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
@@ -31,6 +66,27 @@ class Moderation(commands.Cog):
 
         embed = tools.create_embed("Message Purge", f"{len(msgs)} messages deleted.")
         await ctx.send(embed=embed)
+
+    @commands.hybrid_command(description="Start a moderated DM with another user.")
+    async def moderatedchat(self, ctx: commands.Context, user: discord.User):
+        category = ctx.guild.get_channel(1139007202166849566)  # moderated DMs category
+        channel = await category.create_text_channel(
+            f"moderated-{datetime.now().replace(microsecond=0).isoformat()}"
+        )
+        for user in [user, ctx.author]:
+            perms = channel.overwrites_for(user)
+            perms.view_channel = True
+            await channel.set_permissions(user, overwrite=perms)
+
+        message: discord.Message = await channel.send(
+            f"{ctx.author.mention} {user.mention}",
+            embed=tools.create_embed(
+                "Moderated Chat created.",
+                desc=f"{ctx.author.mention} created this channel to communicate with {user.mention}.\nViewable by coaches and leads.",
+            ),
+            view=ModeratedChatView([user, ctx.author]),
+        )
+        await message.pin()
 
     # @purge.hybrid_command(name="user")
     # @commands.has_permissions(manage_messages=True)
