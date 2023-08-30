@@ -116,7 +116,7 @@ class Moderation(commands.Cog):
         )
 
     @commands.hybrid_command(description="Start a moderated DM with another user.")
-    async def msg(self, ctx: commands.Context, user: discord.User, subject: str):
+    async def chat(self, ctx: commands.Context, user: discord.User, subject: str):
         await self.moderatedchat(ctx, user, subject)
 
     # @purge.hybrid_command(name="user")
