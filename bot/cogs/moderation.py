@@ -109,7 +109,10 @@ class Moderation(commands.Cog):
         await message.pin()
 
         await ctx.send(
-            embed=tools.create_embed("", desc="Moderated Chat created."), ephemeral=True
+            embed=tools.create_embed(
+                "", desc=f"Moderated Chat created: {channel.mention}"
+            ),
+            ephemeral=True,
         )
 
     # @purge.hybrid_command(name="user")
