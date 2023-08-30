@@ -88,7 +88,7 @@ class Moderation(commands.Cog):
         self, ctx: commands.Context, user: discord.User, subject: str
     ):
         category = ctx.guild.get_channel(1139007202166849566)  # moderated DMs category
-        formatted_subject = subject[:10] if len(subject) >= 10 else subject
+        formatted_subject = subject[:20] if len(subject) >= 20 else subject
 
         channel = await category.create_text_channel(
             f"{datetime.now().replace(microsecond=0).strftime(r'%Y-%m-%d')}-{formatted_subject.lower().replace(' ', '-')}"
