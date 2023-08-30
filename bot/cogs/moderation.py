@@ -39,7 +39,7 @@ class ModeratedChatView(discord.ui.View):
 
         embed = tools.create_embed(
             "Moderated Chat closed",
-            desc=f"This chat between {self.users[0].mention} and {self.users[1].mention} has been closed.",
+            desc=f"This chat between {self.users[0].mention} and {self.users[1].mention} has been closed. If you would like to continue this discussion at a later time, please create a new chat.",
         )
         await interaction.message.edit(embed=embed)
         await interaction.response.send_message(embed=embed)
@@ -49,6 +49,8 @@ class ModeratedChatView(discord.ui.View):
             await interaction.message.edit(view=self)
         except:
             pass
+
+        await interaction.channel.send(embed=embed)
 
     def disable(self) -> None:
         for child in self.children:
