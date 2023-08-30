@@ -84,10 +84,14 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(description="Start a moderated DM with another user.")
-    async def moderatedchat(self, ctx: commands.Context, user: discord.User):
+    async def moderatedchat(
+        self, ctx: commands.Context, user: discord.User, subject: str
+    ):
         category = ctx.guild.get_channel(1139007202166849566)  # moderated DMs category
+        formatted_subject = subject[:10] if len(subject) >= 10 else subject
+
         channel = await category.create_text_channel(
-            f"moderated-{datetime.now().replace(microsecond=0).isoformat()}"
+            f"{datetime.now().replace(microsecond=0).strftime(r'%Y-%m-%d')}-{formatted_subject.lower().replace(' ', '-')}"
         )
         for u in [user, ctx.author]:
             perms = channel.overwrites_for(u)
