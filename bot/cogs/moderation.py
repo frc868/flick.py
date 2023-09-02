@@ -97,13 +97,14 @@ class Moderation(commands.Cog):
             perms = channel.overwrites_for(u)
             perms.view_channel = True
             await channel.set_permissions(u, overwrite=perms)
-
+        embed = tools.create_embed(
+            "Moderated Chat created",
+            desc=f"{ctx.author.mention} created this channel to communicate with {user.mention}.\nViewable by coaches and leads.",
+        )
+        embed.add_field(name="Subject", value=subject)
         message: discord.Message = await channel.send(
             f"{ctx.author.mention} {user.mention}",
-            embed=tools.create_embed(
-                "Moderated Chat created",
-                desc=f"{ctx.author.mention} created this channel to communicate with {user.mention}.\nViewable by coaches and leads.",
-            ),
+            embed=embed,
             view=ModeratedChatView([user, ctx.author]),
         )
         await message.pin()
