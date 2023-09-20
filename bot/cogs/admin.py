@@ -138,8 +138,17 @@ class Admin(commands.Cog):
                 cwd="/opt/website",
             ).stdout
         )
+        await ctx.send(
+            subprocess.run(
+                "git pull",
+                shell=True,
+                text=True,
+                capture_output=True,
+                cwd="/opt/website-dev",
+            ).stdout
+        )
 
-        await ctx.send("Deploying to /var/www/html.")
+        await ctx.send("Deploying to /var/www/html and /var/www/dev.")
         subprocess.run(
             "./deploy.sh",
             shell=True,
