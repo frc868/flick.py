@@ -154,7 +154,7 @@ class Admin(commands.Cog):
             shell=True,
             text=True,
             capture_output=True,
-            cwd="/home/dr",
+            cwd="/home/davidracovan",
         )
         await ctx.send("Deployed.")
 
