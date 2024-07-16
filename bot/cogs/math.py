@@ -11,24 +11,25 @@ import bot.helpers.tools as tools
 
 
 class Math(commands.Cog):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot):
         self.bot = bot
 
     @commands.hybrid_command(description="Render LaTeX!")
     @app_commands.describe(tex="The LaTeX code to render.")
-    async def latex(self, ctx: commands.Context, tex: str) -> None:
+    async def latex(self, ctx: commands.Context, tex: str):
         embed = tools.create_embed("LaTeX")
         url = "https://latex.codecogs.com/png.latex?" + urllib.parse.quote(
             "\\huge\\dpi{500}\\color{white}" + tex
         )
         embed.set_image(url=url)
         await ctx.send(embed=embed)
-    
+
     @commands.hybrid_command(description="Render the equation for PID control.")
-    async def pid(self, ctx: commands.Context) -> None:
+    async def pid(self, ctx: commands.Context):
         embed = tools.create_embed("PID Control Equation")
         url = "https://latex.codecogs.com/png.latex?" + urllib.parse.quote(
-            "\\huge\\dpi{500}\\color{white}" + r"u(t) = K_pe(t) + K_i\int_{0}^{t}e(\tau)d\tau + K_d\frac{\mathrm{d} e(t)}{\mathrm{d} t}"
+            "\\huge\\dpi{500}\\color{white}"
+            + r"u(t) = K_pe(t) + K_i\int_{0}^{t}e(\tau)d\tau + K_d\frac{\mathrm{d} e(t)}{\mathrm{d} t}"
         )
         embed.set_image(url=url)
         await ctx.send(embed=embed)
@@ -61,7 +62,7 @@ class Math(commands.Cog):
         x_value: int | None = None,
         y_value: int | None = None,
         z_value: int | None = None,
-    ) -> None:
+    ):
         try:
             if solve_type == "solve":
                 try:
@@ -116,5 +117,5 @@ class Math(commands.Cog):
         await ctx.send(embed=embed)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(Math(bot))

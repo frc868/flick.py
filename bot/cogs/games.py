@@ -14,12 +14,12 @@ class TicTacToeButton(discord.ui.Button):
     x: int
     y: int
 
-    def __init__(self, x: int, y: int) -> None:
+    def __init__(self, x: int, y: int):
         super().__init__(style=discord.ButtonStyle.gray, emoji=TicTacToe.W_EMOJI, row=y)
         self.x = x
         self.y = y
 
-    async def callback(self, interaction: discord.Interaction) -> None:
+    async def callback(self, interaction: discord.Interaction):
         assert self.view is not None
         view: TicTacToeView = self.view
 
@@ -75,7 +75,7 @@ class TicTacToeView(discord.ui.View):
     turn: TicTacToeState = TicTacToeState.X
     winner: TicTacToeState = TicTacToeState.NONE
 
-    def __init__(self, p1: discord.User, p2: discord.User) -> None:
+    def __init__(self, p1: discord.User, p2: discord.User):
         super().__init__()
         self.player_x, self.player_o = random.sample(
             [p1, p2], 2
@@ -170,15 +170,14 @@ class TicTacToe(commands.Cog):
     O_EMOJI = discord.PartialEmoji(name="ttt_o", id=808393850250854501)
     W_EMOJI = discord.PartialEmoji(name="ttt_ww", id=870068413693849641)
 
-    def __init__(self, bot) -> None:
+    def __init__(self, bot):
         self.bot = bot
 
     @commands.hybrid_command(
         description="Start a game of tic tac toe.", aliases=["ttt"]
     )
     @app_commands.describe(player2="The player to ask to play tic tac toe with.")
-    async def tictactoe(self, ctx: commands.Context, player2: discord.User) -> None:
-
+    async def tictactoe(self, ctx: commands.Context, player2: discord.User):
         view = tools.Confirmation(player2, timeout=45.0)
         msg = await ctx.send(
             embed=tools.create_embed(
@@ -327,7 +326,7 @@ class TicTacToe(commands.Cog):
 #         ],
 #         guild_ids=[801630163866746901, 809169133086048257],
 #     )
-#     async def chess_cmd(self, ctx: SlashContext, player2: discord.User) -> None:
+#     async def chess_cmd(self, ctx: SlashContext, player2: discord.User):
 #         await self.request_game(ctx, player2)
 
 #     async def request_game(
@@ -606,7 +605,7 @@ class TicTacToe(commands.Cog):
 #         super().__init__(bot)
 
 #     @commands.command(name="chess")
-#     async def chess_legacy(self, ctx: commands.Context, player2: discord.User) -> None:
+#     async def chess_legacy(self, ctx: commands.Context, player2: discord.User):
 #         await self.request_game(ctx, player2)
 
 
@@ -615,5 +614,5 @@ class TicTacToe(commands.Cog):
 #         super().__init__(bot)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(TicTacToe(bot))

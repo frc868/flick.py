@@ -12,11 +12,11 @@ from bot.helpers import tools
 
 
 class Fun(commands.Cog, name="fun"):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot):
         self.bot = bot
 
     @commands.hybrid_command(description="Greet the bot!", aliases=["hi"])
-    async def hello(self, ctx: commands.Context) -> None:
+    async def hello(self, ctx: commands.Context):
         await ctx.send(
             embed=tools.create_embed(
                 "Hello!", desc=f"How are you, {ctx.author.mention}?"
@@ -24,7 +24,7 @@ class Fun(commands.Cog, name="fun"):
         )
 
     @commands.hybrid_command(description="Ask the ~~magic~~ 8 Ball a question.")
-    async def eightball(self, ctx: commands.Context, *, request: str) -> None:
+    async def eightball(self, ctx: commands.Context, *, request: str):
         responses = [
             [
                 "🟢 As I see it, yes. 🟢",
@@ -81,7 +81,7 @@ class Fun(commands.Cog, name="fun"):
         max_num="The maximum number in the range.",
     )
     @commands.cooldown(1, 10)
-    async def rng(self, ctx: commands.Context, min_num: int, max_num: int) -> None:
+    async def rng(self, ctx: commands.Context, min_num: int, max_num: int):
         embed = tools.create_embed(
             "Random Number", desc=f"```{random.randint(min_num, max_num)}```"
         )
@@ -89,7 +89,7 @@ class Fun(commands.Cog, name="fun"):
 
     @commands.hybrid_command(description="Get a dog picture!")
     @commands.cooldown(1, 3)
-    async def dog(self, ctx: commands.Context) -> None:
+    async def dog(self, ctx: commands.Context):
         """Get a dog picture!"""
         async with aiohttp.ClientSession() as session:
             async with session.get("https://dog.ceo/api/breeds/image/random") as r:
@@ -101,7 +101,7 @@ class Fun(commands.Cog, name="fun"):
 
     @commands.hybrid_command(description="Get a cat picture!")
     @commands.cooldown(1, 3)
-    async def cat(self, ctx: commands.Context) -> None:
+    async def cat(self, ctx: commands.Context):
         """Get a cat picture!"""
         async with aiohttp.ClientSession() as session:
             async with session.get("http://aws.random.cat/meow") as r:
@@ -112,7 +112,7 @@ class Fun(commands.Cog, name="fun"):
                     await ctx.send(embed=embed)
 
     @commands.hybrid_command(name="xkcd", description="Launch an XKCD browser.")
-    async def xkcd_(self, ctx: commands.Context, num: int | None = None) -> None:
+    async def xkcd_(self, ctx: commands.Context, num: int | None = None):
         def callback(page: int) -> discord.Embed:
             comic = xkcd.getComic(page + 1)
             embed = tools.create_embed(f"XKCD {page+1}: {comic.getTitle()}")
@@ -131,28 +131,26 @@ class Fun(commands.Cog, name="fun"):
 
     @commands.hybrid_command(description="Makes text look aesthetic.")
     @app_commands.describe(text="The text to make look aesthetic.")
-    async def aes(self, ctx: commands.Context, *, text: str) -> None:
+    async def aes(self, ctx: commands.Context, *, text: str):
         await ctx.send(thicc.map_string(text))
 
     @commands.hybrid_command(
         description="Makes text look aesthetic but less cool than aes."
     )
     @app_commands.describe(text="The text to make look aesthetic.")
-    async def pooraes(self, ctx: commands.Context, *, text: str) -> None:
+    async def pooraes(self, ctx: commands.Context, *, text: str):
         await ctx.send(" ".join(text))
 
     @commands.hybrid_command(description="Clapping.")
     @app_commands.describe(text="The text to clapify.")
-    async def clap(self, ctx: commands.Context, *, text: str) -> None:
+    async def clap(self, ctx: commands.Context, *, text: str):
         await ctx.send("👏".join(text.split()) if len(text.split()) > 1 else f"👏{text}👏")
 
     @commands.hybrid_command(description="Clapping but with a custom separator.")
     @app_commands.describe(
         separator="The text to use instead of a clap.", text="The text to clapify."
     )
-    async def clapwith(
-        self, ctx: commands.Context, separator: str, *, text: str
-    ) -> None:
+    async def clapwith(self, ctx: commands.Context, separator: str, *, text: str):
         await ctx.send(
             separator.join(text.split())
             if len(text.split()) > 1
@@ -160,7 +158,7 @@ class Fun(commands.Cog, name="fun"):
         )
 
     @commands.hybrid_command(description="Get a dad joke.")
-    async def dad(self, ctx: commands.Context) -> None:
+    async def dad(self, ctx: commands.Context):
         await ctx.send(
             embed=tools.create_embed(
                 "~~bad~~ dad joke",
@@ -178,13 +176,13 @@ class Fun(commands.Cog, name="fun"):
     )
     async def dance(
         self, ctx: commands.Context, text: str = "uwu"
-    ) -> None:  # TODO: make this work with other text lengths because why not
+    ):  # TODO: make this work with other text lengths because why not
         arg = text if len(text) == 3 else "uwu"
         await ctx.send(f"{arg[0]}{arg[1]} {arg[2]}\n{arg[0]} {arg[1]}{arg[2]}\n" * 3)
 
     @commands.hybrid_command(description="Mock something.")
     @app_commands.describe(text="The text to mock.")
-    async def mock(self, ctx: commands.Context, *, text: str) -> None:
+    async def mock(self, ctx: commands.Context, *, text: str):
         await ctx.send(
             "".join(
                 [x.lower() if i % 2 == 0 else x.upper() for i, x in enumerate(text)]
@@ -192,16 +190,14 @@ class Fun(commands.Cog, name="fun"):
         )
 
     @commands.hybrid_command(description="Flip a coin!")
-    async def coin(self, ctx: commands.Context) -> None:
+    async def coin(self, ctx: commands.Context):
         await ctx.send(
             embed=tools.create_embed("Coin Flip", random.choice(["Heads!", "Tails!"]))
         )
 
     @commands.hybrid_command(description="Where's my wago?")
     @app_commands.describe(member="The person to ping.")
-    async def wago(
-        self, ctx: commands.Context, member: discord.Member | None = None
-    ) -> None:
+    async def wago(self, ctx: commands.Context, member: discord.Member | None = None):
         await ctx.send(
             (
                 member.mention
@@ -218,5 +214,5 @@ class Fun(commands.Cog, name="fun"):
         )
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(Fun(bot))

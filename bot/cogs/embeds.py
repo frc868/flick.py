@@ -9,7 +9,7 @@ from bot.helpers import tools
 
 
 class Embeds(commands.Cog):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot):
         self.bot = bot
         self.bot.tree.add_command(
             app_commands.ContextMenu(
@@ -20,7 +20,7 @@ class Embeds(commands.Cog):
 
     async def editembed_menu(
         self, interaction: discord.Interaction, message: discord.Message
-    ) -> None:
+    ):
         if message.author.id != self.bot.user.id:
             await interaction.response.send_message(
                 embed=tools.create_error_embed(
@@ -45,7 +45,7 @@ class Embeds(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     async def sendembed(
         self, ctx: commands.Context, channel: discord.TextChannel | None = None
-    ) -> None:
+    ):
         view = EmbedEditor(ctx.author, channel if channel else ctx.channel)
         await ctx.send(embeds=view.get_embeds(), view=view)
 
@@ -65,7 +65,7 @@ class Embeds(commands.Cog):
         channel: discord.TextChannel,
         message_id: str,
         # embed_number: int = 1,
-    ) -> None:
+    ):
         try:
             message = await channel.fetch_message(int(message_id))
         except:
@@ -90,7 +90,7 @@ class EmbedEditor(tools.ViewBase):
         user: discord.User,
         target: discord.TextChannel | discord.Message,
         embed_number: int = 0,
-    ) -> None:
+    ):
         super().__init__(user, timeout=600.0)
         if isinstance(target, discord.TextChannel):
             self.channel = target
@@ -113,7 +113,7 @@ class EmbedEditor(tools.ViewBase):
             instructions.add_field(name="Message ID", value=self.message.id)
         return [instructions, self.embed]
 
-    def update_field_buttons(self) -> None:
+    def update_field_buttons(self):
         field_buttons = [
             child
             for child in self.children
@@ -132,7 +132,7 @@ class EmbedEditor(tools.ViewBase):
             )
             inline = discord.ui.TextInput(label="Is Inline")
 
-            def __init__(self, embed: discord.Embed, index: int) -> None:
+            def __init__(self, embed: discord.Embed, index: int):
                 super().__init__(title=f"Edit Field {index+1}")
                 self.embed = embed
                 self.index = index
@@ -140,7 +140,7 @@ class EmbedEditor(tools.ViewBase):
                 self.text.default = self.embed.fields[index].value
                 self.inline.default = str(self.embed.fields[index].inline)
 
-            async def on_submit(self, interaction: discord.Interaction) -> None:
+            async def on_submit(self, interaction: discord.Interaction):
                 self.embed.set_field_at(
                     self.index,
                     name=self.name.value,
@@ -150,7 +150,7 @@ class EmbedEditor(tools.ViewBase):
                 self.interaction = interaction
 
         def generate_callback(index: int):
-            async def callback(interaction: discord.Interaction) -> None:
+            async def callback(interaction: discord.Interaction):
                 modal = FieldButtonModal(self.embed, index)
                 await interaction.response.send_modal(modal)
                 await modal.wait()
@@ -169,7 +169,7 @@ class EmbedEditor(tools.ViewBase):
     @discord.ui.button(label="Text/Color")
     async def text_color(
         self, interaction: discord.Interaction, button: discord.ui.Button
-    ) -> None:
+    ):
         class TextColorModal(discord.ui.Modal, title="Edit Embed Text"):
             embed: discord.Embed
             interaction: discord.Interaction
@@ -185,7 +185,7 @@ class EmbedEditor(tools.ViewBase):
                 label="Color", placeholder="Color as hex (#000000)", required=False
             )
 
-            def __init__(self, embed: discord.Embed) -> None:
+            def __init__(self, embed: discord.Embed):
                 super().__init__()
                 self.embed = embed
                 self.title_.default = embed.title
@@ -203,7 +203,7 @@ class EmbedEditor(tools.ViewBase):
                     else None
                 )
 
-            async def on_submit(self, interaction: discord.Interaction) -> None:
+            async def on_submit(self, interaction: discord.Interaction):
                 self.embed.title = self.title_.value
                 self.embed.description = self.description.value
                 self.embed.url = self.url.value
@@ -219,22 +219,20 @@ class EmbedEditor(tools.ViewBase):
         )
 
     @discord.ui.button(label="Images")
-    async def images(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ) -> None:
+    async def images(self, interaction: discord.Interaction, button: discord.ui.Button):
         class ImagesModal(discord.ui.Modal, title="Edit Images"):
             embed: discord.Embed
             interaction: discord.Interaction
             image_url = discord.ui.TextInput(label="Image URL", required=False)
             thumbnail_url = discord.ui.TextInput(label="Thumbnail URL", required=False)
 
-            def __init__(self, embed: discord.Embed) -> None:
+            def __init__(self, embed: discord.Embed):
                 super().__init__()
                 self.embed = embed
                 self.image_url.default = embed.image.url
                 self.thumbnail_url.default = embed.thumbnail.url
 
-            async def on_submit(self, interaction: discord.Interaction) -> None:
+            async def on_submit(self, interaction: discord.Interaction):
                 self.embed.set_image(url=self.image_url.value)
                 self.embed.set_thumbnail(url=self.thumbnail_url.value)
                 self.interaction = interaction
@@ -247,9 +245,7 @@ class EmbedEditor(tools.ViewBase):
         )
 
     @discord.ui.button(label="Author")
-    async def author(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ) -> None:
+    async def author(self, interaction: discord.Interaction, button: discord.ui.Button):
         class AuthorModal(discord.ui.Modal, title="Edit Author"):
             embed: discord.Embed
             interaction: discord.Interaction
@@ -257,14 +253,14 @@ class EmbedEditor(tools.ViewBase):
             url = discord.ui.TextInput(label="URL", required=False)
             icon_url = discord.ui.TextInput(label="Icon URL", required=False)
 
-            def __init__(self, embed: discord.Embed) -> None:
+            def __init__(self, embed: discord.Embed):
                 super().__init__()
                 self.embed = embed
                 self.name.default = embed.author.name
                 self.url.default = embed.author.url
                 self.icon_url.default = embed.author.icon_url
 
-            async def on_submit(self, interaction: discord.Interaction) -> None:
+            async def on_submit(self, interaction: discord.Interaction):
                 self.embed.set_author(
                     name=self.name.value,
                     url=self.url.value,
@@ -280,22 +276,20 @@ class EmbedEditor(tools.ViewBase):
         )
 
     @discord.ui.button(label="Footer")
-    async def footer(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ) -> None:
+    async def footer(self, interaction: discord.Interaction, button: discord.ui.Button):
         class FooterModal(discord.ui.Modal, title="Edit Footer"):
             embed: discord.Embed
             interaction: discord.Interaction
             text = discord.ui.TextInput(label="Text", required=False)
             icon_url = discord.ui.TextInput(label="Icon URL", required=False)
 
-            def __init__(self, embed: discord.Embed) -> None:
+            def __init__(self, embed: discord.Embed):
                 super().__init__()
                 self.embed = embed
                 self.text.default = embed.footer.text
                 self.icon_url.default = embed.footer.icon_url
 
-            async def on_submit(self, interaction: discord.Interaction) -> None:
+            async def on_submit(self, interaction: discord.Interaction):
                 self.embed.set_footer(
                     text=self.text.value,
                     icon_url=self.icon_url.value,
@@ -314,10 +308,10 @@ class EmbedEditor(tools.ViewBase):
         interaction: discord.Interaction
         index = discord.ui.TextInput(label="Index", required=True)
 
-        def __init__(self, title: str) -> None:
+        def __init__(self, title: str):
             super().__init__(title=title)
 
-        async def on_submit(self, interaction: discord.Interaction) -> None:
+        async def on_submit(self, interaction: discord.Interaction):
             try:
                 self.target = int(self.index.value)
             except:
@@ -330,7 +324,7 @@ class EmbedEditor(tools.ViewBase):
     @discord.ui.button(label="Add Field", style=discord.ButtonStyle.blurple, row=3)
     async def add_field(
         self, interaction: discord.Interaction, button: discord.ui.Button
-    ) -> None:
+    ):
         modal = self.FieldModal("Add Field")
         await interaction.response.send_modal(modal)
         await modal.wait()
@@ -346,7 +340,7 @@ class EmbedEditor(tools.ViewBase):
     @discord.ui.button(label="Remove Field", style=discord.ButtonStyle.blurple, row=3)
     async def remove_field(
         self, interaction: discord.Interaction, button: discord.ui.Button
-    ) -> None:
+    ):
         modal = self.FieldModal("Remove Field")
         await interaction.response.send_modal(modal)
         await modal.wait()
@@ -358,9 +352,7 @@ class EmbedEditor(tools.ViewBase):
             )
 
     @discord.ui.button(label="Send", style=discord.ButtonStyle.green, row=4)
-    async def send(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ) -> None:
+    async def send(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(
             embed=discord.Embed(
                 title="Embed Editor",
@@ -376,9 +368,7 @@ class EmbedEditor(tools.ViewBase):
         self.stop()
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red, row=4)
-    async def cancel(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ) -> None:
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(
             embed=discord.Embed(
                 title="Embed Editor",
@@ -390,5 +380,5 @@ class EmbedEditor(tools.ViewBase):
         self.stop()
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(Embeds(bot))
