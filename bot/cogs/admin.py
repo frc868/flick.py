@@ -41,7 +41,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def preparename(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def prepare_name(self, ctx: commands.Context, channel: discord.TextChannel):
         embed = discord.Embed(
             title="Nickname",
             description="Please press the button below to set your nickname.",
@@ -52,7 +52,9 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def preparepronoun(self, ctx: commands.Context, channel: discord.TextChannel):
+    async def prepare_pronoun(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         embed = discord.Embed(
             title="Pronouns",
             description="Please select your pronouns if you feel comfortable doing so.",
@@ -68,7 +70,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def preparegradelevel(
+    async def prepare_grade_level(
         self, ctx: commands.Context, channel: discord.TextChannel
     ):
         embed = discord.Embed(
@@ -97,7 +99,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def gitpull(self, ctx: commands.Context):
+    async def git_pull(self, ctx: commands.Context):
         await ctx.send("Pulling from Git.")
         await ctx.send(
             subprocess.run(
@@ -120,12 +122,12 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.check(admin_access)
     async def update(self, ctx: commands.Context):
-        await self.gitpull(ctx)
+        await self.git_pull(ctx)
         await self.reload(ctx)
 
     @commands.command()
     @commands.check(admin_access)
-    async def updatewebsite(self, ctx: commands.Context):
+    async def update_website(self, ctx: commands.Context):
         await ctx.send("Pulling from Git.")
         await ctx.send(
             subprocess.run(
@@ -164,7 +166,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def cycleyearroles(self, ctx: commands.Context):
+    async def cycle_year_roles(self, ctx: commands.Context):
         class Roles:
             freshman = 1014547797132972052
             sophomore = 1014547916473503885

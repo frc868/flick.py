@@ -14,7 +14,7 @@ class ModeratedChatView(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(label="Ping Adults", style=discord.ButtonStyle.blurple)
-    async def pingadults(
+    async def ping_adults(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         role = interaction.guild.get_role(1057724286837719041)
@@ -84,7 +84,7 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(description="Start a moderated DM with another user.")
-    async def moderatedchat(
+    async def moderated_chat(
         self, ctx: commands.Context, user: discord.User, subject: str
     ):
         category = ctx.guild.get_channel(1139007202166849566)  # moderated DMs category
@@ -118,7 +118,7 @@ class Moderation(commands.Cog):
 
     @commands.hybrid_command(description="Start a moderated DM with another user.")
     async def chat(self, ctx: commands.Context, user: discord.User, subject: str):
-        await self.moderatedchat(ctx, user, subject)
+        await self.moderated_chat(ctx, user, subject)
 
     # @purge.hybrid_command(name="user")
     # @commands.has_permissions(manage_messages=True)

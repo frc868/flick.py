@@ -14,11 +14,11 @@ class Embeds(commands.Cog):
         self.bot.tree.add_command(
             app_commands.ContextMenu(
                 name="Edit Embed",
-                callback=self.editembed_menu,
+                callback=self.edit_embed_menu,
             )
         )
 
-    async def editembed_menu(
+    async def edit_embed_menu(
         self, interaction: discord.Interaction, message: discord.Message
     ):
         if message.author.id != self.bot.user.id:
