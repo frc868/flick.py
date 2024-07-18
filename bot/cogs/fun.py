@@ -138,7 +138,7 @@ class Fun(commands.Cog, name="fun"):
         description="Makes text look aesthetic but less cool than aes."
     )
     @app_commands.describe(text="The text to make look aesthetic.")
-    async def poor_aes(self, ctx: commands.Context, *, text: str):
+    async def pooraes(self, ctx: commands.Context, *, text: str):
         await ctx.send(" ".join(text))
 
     @commands.hybrid_command(description="Clapping.")
@@ -150,7 +150,7 @@ class Fun(commands.Cog, name="fun"):
     @app_commands.describe(
         separator="The text to use instead of a clap.", text="The text to clapify."
     )
-    async def clap_with(self, ctx: commands.Context, separator: str, *, text: str):
+    async def clapwith(self, ctx: commands.Context, separator: str, *, text: str):
         await ctx.send(
             separator.join(text.split())
             if len(text.split()) > 1
