@@ -12,7 +12,7 @@ class ModLogs(commands.Cog):
         self.log_channel_id = 1016517257624567848
 
     @commands.Cog.listener(name="on_raw_message_edit")
-    async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent) -> None:
+    async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent):
         if "author" in payload.data:
             if payload.data["author"]["id"] != self.bot.user.id:
                 guild = self.bot.get_guild(int(payload.data["guild_id"]))
@@ -51,9 +51,7 @@ class ModLogs(commands.Cog):
                 await log_channel.send(embed=embed)
 
     @commands.Cog.listener(name="on_raw_message_delete")
-    async def on_raw_message_delete(
-        self, payload: discord.RawMessageDeleteEvent
-    ) -> None:
+    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
         guild = self.bot.get_guild(payload.guild_id)
         log_channel = guild.get_channel(self.log_channel_id)
         message_channel = guild.get_channel(payload.channel_id)
@@ -85,7 +83,7 @@ class ModLogs(commands.Cog):
             await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_guild_channel_create(self, channel: discord.abc.GuildChannel) -> None:
+    async def on_guild_channel_create(self, channel: discord.abc.GuildChannel):
         guild = channel.guild
         log_channel = guild.get_channel(self.log_channel_id)
 
@@ -97,7 +95,7 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_guild_channel_delete(self, channel: discord.abc.GuildChannel) -> None:
+    async def on_guild_channel_delete(self, channel: discord.abc.GuildChannel):
         guild = channel.guild
         log_channel = guild.get_channel(self.log_channel_id)
         embed = discord.Embed(
@@ -110,7 +108,7 @@ class ModLogs(commands.Cog):
     # @commands.Cog.listener()
     # async def on_guild_channel_update(
     #     self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel
-    # ) -> None:
+    # ):
     #     guild = before.guild
     #     log_channel = guild.get_channel(self.log_channel_id)
 
@@ -122,7 +120,7 @@ class ModLogs(commands.Cog):
     #     await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member) -> None:
+    async def on_member_join(self, member: discord.Member):
         guild = member.guild
         log_channel = guild.get_channel(self.log_channel_id)
 
@@ -135,7 +133,7 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_member_remove(self, member: discord.Member) -> None:
+    async def on_member_remove(self, member: discord.Member):
         guild = member.guild
         log_channel = guild.get_channel(self.log_channel_id)
 
@@ -148,9 +146,7 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_member_update(
-        self, before: discord.Member, after: discord.Member
-    ) -> None:
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
         added_roles = []
         removed_roles = []
         if before.roles != after.roles:
@@ -177,7 +173,7 @@ class ModLogs(commands.Cog):
             await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_invite_create(self, invite: discord.Invite) -> None:
+    async def on_invite_create(self, invite: discord.Invite):
         guild = invite.guild
         log_channel = guild.get_channel(self.log_channel_id)
 
@@ -191,7 +187,7 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_invite_delete(self, invite: discord.Invite) -> None:
+    async def on_invite_delete(self, invite: discord.Invite):
         guild = invite.guild
         log_channel = guild.get_channel(self.log_channel_id)
 
@@ -205,9 +201,7 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_guild_update(
-        self, before: discord.Guild, after: discord.Guild
-    ) -> None:
+    async def on_guild_update(self, before: discord.Guild, after: discord.Guild):
         guild = before
         log_channel = guild.get_channel(self.log_channel_id)
 
@@ -219,7 +213,7 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_guild_role_create(self, role: discord.Role) -> None:
+    async def on_guild_role_create(self, role: discord.Role):
         guild = role.guild
         log_channel = guild.get_channel(self.log_channel_id)
 
@@ -231,7 +225,7 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_guild_role_delete(self, role: discord.Role) -> None:
+    async def on_guild_role_delete(self, role: discord.Role):
         guild = role.guild
         log_channel = guild.get_channel(self.log_channel_id)
 
@@ -243,9 +237,7 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_guild_role_update(
-        self, before: discord.Role, after: discord.Role
-    ) -> None:
+    async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
         if after.name == "Rainbow":
             return
         guild = before.guild
@@ -259,5 +251,5 @@ class ModLogs(commands.Cog):
         await log_channel.send(embed=embed)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(ModLogs(bot))

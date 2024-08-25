@@ -8,7 +8,7 @@ from bot.helpers import tools
 class NameModal(discord.ui.Modal, title="Name"):
     name = discord.ui.TextInput(label="Enter your name (first last)")
 
-    async def on_submit(self, interaction: discord.Interaction) -> None:
+    async def on_submit(self, interaction: discord.Interaction):
         try:
             first_name, last_name = self.name.value.split()
             formatted_name = f"{first_name.title()} {last_name[0].upper()}"
@@ -38,7 +38,7 @@ class NameModal(discord.ui.Modal, title="Name"):
 
 
 class NameView(discord.ui.View):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__(timeout=None)
 
     @discord.ui.button(label="Set Name", custom_id="nickname")
@@ -78,6 +78,7 @@ def create_persistent_pronoun_selector(
         custom_id_prefix="pronoun",
     )
 
+
 def create_persistent_grade_level_selector(
     guild: discord.Guild,
 ) -> tools.PersistentRoleSelector:
@@ -87,7 +88,7 @@ def create_persistent_grade_level_selector(
             1014547797132972052,
             1014547916473503885,
             1014547950397034617,
-            1014547985348186284
+            1014547985348186284,
         ],
         "Grade Level",
         custom_id_prefix="gradelevel",
@@ -95,11 +96,11 @@ def create_persistent_grade_level_selector(
 
 
 class TechHounds(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.hybrid_command(description="Set your division.")
-    async def division(self, ctx: commands.Context) -> None:
+    async def division(self, ctx: commands.Context):
         view = tools.RoleSelector(
             ctx.author,
             ctx.guild,
@@ -121,5 +122,5 @@ class TechHounds(commands.Cog):
         )
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(TechHounds(bot))

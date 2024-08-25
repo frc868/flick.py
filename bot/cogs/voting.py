@@ -163,10 +163,10 @@ class Voting(commands.Cog):
         number_required: int,
         role: discord.Role | None = None,
         anonymous: bool = False,
-    ) -> None:
+    ):
         view = VoteView(text, number_required, role, anonymous)
         await ctx.send(embed=view.create_embed(), view=view)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(Voting(bot))

@@ -50,7 +50,7 @@ class ModeratedChatView(discord.ui.View):
         except:
             pass
 
-    def disable(self) -> None:
+    def disable(self):
         for child in self.children:
             child.disabled = True
         self.stop()
@@ -59,7 +59,7 @@ class ModeratedChatView(discord.ui.View):
 class Moderation(commands.Cog):
     open_dms = []
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.hybrid_command(
@@ -73,7 +73,7 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     async def purge(
         self, ctx: commands.Context, num: int, user: discord.User | None = None
-    ) -> None:
+    ):
         msgs = []
         async for msg in ctx.channel.history(limit=num, before=ctx.message):
             if not user or msg.author.id == user.id:
@@ -123,7 +123,7 @@ class Moderation(commands.Cog):
     # @purge.hybrid_command(name="user")
     # @commands.has_permissions(manage_messages=True)
     # @commands.bot_has_permissions(manage_messages=True)
-    # async def purge_bots(self, ctx: commands.Context, num: int) -> None:
+    # async def purge_bots(self, ctx: commands.Context, num: int):
     #     moderation_record = await self.bot.db.fetchrow(
     #         "INSERT INTO moderations (server_id, type, moderator_id, channel, count) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
     #         str(ctx.guild.id),
@@ -168,7 +168,7 @@ class Moderation(commands.Cog):
     # )
     # @commands.has_permissions(manage_messages=True)
     # @commands.bot_has_permissions(manage_messages=True)
-    # async def purge_humans(self, ctx: SlashContext, number: int, reason: str) -> None:
+    # async def purge_humans(self, ctx: SlashContext, number: int, reason: str):
     #     moderation_record = await self.bot.db.fetchrow(
     #         "INSERT INTO moderations (server_id, type, moderator_id, channel, count) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
     #         str(ctx.guild.id),
@@ -212,7 +212,7 @@ class Moderation(commands.Cog):
     # @commands.has_permissions(manage_messages=True)
     # async def warn(
     #     self, ctx: SlashContext, user: discord.User, reason: str = None
-    # ) -> None:
+    # ):
     #     moderation_record = await self.bot.db.fetchrow(
     #         "INSERT INTO moderations (server_id, type, user_id, moderator_id, reason) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
     #         str(ctx.guild.id),
@@ -249,7 +249,7 @@ class Moderation(commands.Cog):
     # @commands.bot_has_permissions(kick_members=True)
     # async def kick(
     #     self, ctx: SlashContext, user: discord.User, reason: str = None
-    # ) -> None:
+    # ):
     #     await ctx.guild.kick(user, reason=reason)
     #     moderation_record = await self.bot.db.fetchrow(
     #         "INSERT INTO moderations (server_id, type, user_id, moderator_id, reason) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
@@ -287,7 +287,7 @@ class Moderation(commands.Cog):
     # @commands.bot_has_permissions(ban_members=True)
     # async def ban(
     #     self, ctx: SlashContext, user: discord.User, reason: str = None
-    # ) -> None:
+    # ):
     #     await ctx.guild.ban(user, reason=reason)
     #     moderation_record = await self.bot.db.fetchrow(
     #         "INSERT INTO moderations (server_id, type, user_id, moderator_id, reason) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
@@ -348,7 +348,7 @@ class Moderation(commands.Cog):
     #     duration: int,
     #     duration_unit: str,
     #     reason: str = None,
-    # ) -> None:
+    # ):
     #     await user.add_roles(ctx.guild.get_role(809169133232717890))
     #     duration_adjustments = {
     #         "days": 1 * 60 * 60 * 24,
@@ -393,7 +393,7 @@ class Moderation(commands.Cog):
     # )
     # @commands.has_permissions(manage_roles=True)
     # @commands.bot_has_permissions(manage_roles=True)
-    # async def unmute(self, ctx: SlashContext, user: discord.User, reason=None) -> None:
+    # async def unmute(self, ctx: SlashContext, user: discord.User, reason=None):
     #     moderation_record = await self.bot.db.fetchrow(
     #         "INSERT INTO moderations (server_id, type, user_id, moderator_id, reason) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
     #         str(ctx.guild.id),
@@ -418,7 +418,7 @@ class Moderation(commands.Cog):
     #     description="Get a list of all moderations in the server.",
     # )
     # @commands.has_permissions(manage_messages=True)
-    # async def moderations_list_server(self, ctx: SlashContext) -> None:
+    # async def moderations_list_server(self, ctx: SlashContext):
     #     records = await self.bot.db.fetch(
     #         "SELECT * FROM moderations WHERE server_id=$1", str(ctx.guild.id)
     #     )
@@ -458,7 +458,7 @@ class Moderation(commands.Cog):
     # @commands.has_permissions(manage_messages=True)
     # async def moderations_list_user(
     #     self, ctx: SlashContext, user: discord.User
-    # ) -> None:
+    # ):
     #     records = await self.bot.db.fetch(
     #         "SELECT * FROM moderations WHERE server_id=$1 AND user_id=$2;",
     #         str(ctx.guild.id),
@@ -528,7 +528,7 @@ class Moderation(commands.Cog):
     #     ],
     # )
     # @commands.has_permissions(manage_messages=True)
-    # async def moderations_list_type(self, ctx: SlashContext, type: str) -> None:
+    # async def moderations_list_type(self, ctx: SlashContext, type: str):
     #     records = await self.bot.db.fetch(
     #         "SELECT * FROM moderations WHERE server_id=$1 AND type=$2;",
     #         str(ctx.guild.id),
@@ -607,5 +607,5 @@ class Moderation(commands.Cog):
     #         await ctx.send(embed=embed)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(Moderation(bot))

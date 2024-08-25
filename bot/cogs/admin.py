@@ -16,14 +16,16 @@ class Admin(commands.Cog):
         )
 
     def admin_access(ctx: commands.Context) -> bool:
-        # superpenguin612#4406, acr#7356
-        return ctx.author.id in [688530998920871969, 321378326273064961]
+        lead = 650166283211636746
+        mentor = 1224052980857311245
+
+        return ctx.author.id in [lead, mentor]
 
     @commands.command()
     @commands.check(admin_access)
     async def preparedivision(
         self, ctx: commands.Context, channel: discord.TextChannel
-    ) -> None:
+    ):
         embed = discord.Embed(
             title="Division",
             description="Please select the division you would like to join.",
@@ -39,9 +41,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def preparename(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ) -> None:
+    async def preparename(self, ctx: commands.Context, channel: discord.TextChannel):
         embed = discord.Embed(
             title="Nickname",
             description="Please press the button below to set your nickname.",
@@ -52,9 +52,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def preparepronoun(
-        self, ctx: commands.Context, channel: discord.TextChannel
-    ) -> None:
+    async def preparepronoun(self, ctx: commands.Context, channel: discord.TextChannel):
         embed = discord.Embed(
             title="Pronouns",
             description="Please select your pronouns if you feel comfortable doing so.",
@@ -72,7 +70,7 @@ class Admin(commands.Cog):
     @commands.check(admin_access)
     async def preparegradelevel(
         self, ctx: commands.Context, channel: discord.TextChannel
-    ) -> None:
+    ):
         embed = discord.Embed(
             title="Grade Level",
             description="Please select your grade level.",
@@ -88,18 +86,18 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def eval(self, ctx: commands.Context, *, arg: str) -> None:
+    async def eval(self, ctx: commands.Context, *, arg: str):
         await ctx.send(eval(arg))
 
     @commands.command()
     @commands.check(admin_access)
-    async def sync(self, ctx: commands.Context) -> None:
+    async def sync(self, ctx: commands.Context):
         await self.bot.tree.sync()
         await ctx.send("Synced application commands.")
 
     @commands.command()
     @commands.check(admin_access)
-    async def gitpull(self, ctx: commands.Context) -> None:
+    async def gitpull(self, ctx: commands.Context):
         await ctx.send("Pulling from Git.")
         await ctx.send(
             subprocess.run(
@@ -109,7 +107,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def reload(self, ctx: commands.Context) -> None:
+    async def reload(self, ctx: commands.Context):
         await ctx.send("Reloading bot.")
         self.logger.info("Reloading bot.")
         extensions = [name for name, extension in self.bot.extensions.items()]
@@ -121,13 +119,13 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def update(self, ctx: commands.Context) -> None:
+    async def update(self, ctx: commands.Context):
         await self.gitpull(ctx)
         await self.reload(ctx)
 
     @commands.command()
     @commands.check(admin_access)
-    async def updatewebsite(self, ctx: commands.Context) -> None:
+    async def updatewebsite(self, ctx: commands.Context):
         await ctx.send("Pulling from Git.")
         await ctx.send(
             subprocess.run(
@@ -160,13 +158,13 @@ class Admin(commands.Cog):
 
     @commands.command()
     @commands.check(admin_access)
-    async def sync(self, ctx: commands.Context) -> None:
+    async def sync(self, ctx: commands.Context):
         await self.bot.tree.sync()
         await ctx.send("Synced.")
 
     @commands.command()
     @commands.check(admin_access)
-    async def cycleyearroles(self, ctx: commands.Context) -> None:
+    async def cycleyearroles(self, ctx: commands.Context):
         class Roles:
             freshman = 1014547797132972052
             sophomore = 1014547916473503885
@@ -217,5 +215,5 @@ class Admin(commands.Cog):
                 return
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: commands.Bot):
     await bot.add_cog(Admin(bot))
