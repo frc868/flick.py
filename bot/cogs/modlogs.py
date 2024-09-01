@@ -45,11 +45,6 @@ class ModLogs(commands.Cog):
                     value=f'[Jump Link](https://discord.com/channels/{int(payload.data["guild_id"])}/{payload.channel_id}/{payload.message_id})',
                     inline=False,
                 )
-                embed.add_field(
-                    name="Payload Data",
-                    value=str(payload.data),
-                    inline=False,
-                )
                 embed.set_footer(
                     text=f"Channel: {message_channel} | Author ID: {message_author.id}| Message ID: {payload.message_id}"
                 )
