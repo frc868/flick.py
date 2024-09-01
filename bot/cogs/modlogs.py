@@ -13,7 +13,7 @@ class ModLogs(commands.Cog):
 
     @commands.Cog.listener(name="on_raw_message_edit")
     async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent):
-        if "author" in payload.data and "content" in payload.data:
+        if "author" in payload.data and payload.data["content"] is not None:
             if payload.data["author"]["id"] != self.bot.user.id:
                 guild = self.bot.get_guild(int(payload.data["guild_id"]))
                 log_channel = guild.get_channel(self.log_channel_id)
