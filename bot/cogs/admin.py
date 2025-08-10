@@ -16,10 +16,11 @@ class Admin(commands.Cog):
         )
 
     def admin_access(ctx: commands.Context) -> bool:
-        lead = 650166283211636746
-        mentor = 1224052980857311245
+        director1 = 1148324234645487701 # quinnkenison
+        director2 = 798731339390124063 # z3r00582
+        mentor = 1224052980857311245 # andypotts.77_03835
 
-        return ctx.author.id in [lead, mentor]
+        return ctx.author.id in [director1, director2, mentor]
 
     @commands.command()
     @commands.check(admin_access)
