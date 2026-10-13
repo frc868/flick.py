@@ -204,6 +204,41 @@ class TicTacToe(commands.Cog):
             view = TicTacToeView(ctx.author, player2)
             await msg.edit(embed=view.create_game_embed(), view=view)
 
+#Blackjack
+class PlayerHand:
+    def __init__(self):
+        #tuple is just an immutable list.
+        #storing 2 str's: 1st for the card value, and 2nd for the suit
+        self.cards: list[tuple[str, str]]
+    #adds an individual card to our list of cards
+    def __init__(self, card: tuple[str, str]):
+        self.cards.append(card)
+
+    def valueLogic(self) -> int:
+        total = 0
+        numAces = 0
+
+        for val in self.cards:
+            if val == "J" or val == "K" or val == "Q":
+                total += 10
+            elif val == "A":
+                aces += 1
+                total += 11
+            else:
+                total += int(val)
+
+    def isBusted(self) -> bool:
+        if self.value > 21:
+            return True
+        return False
+
+    def isBlackjack(self) -> bool:
+        #Logic: If you have 2 cards and they add to 21,
+        #only way that can happen is thru having an Ace and a K, Q, or J
+        #AKA, a blackjack!
+        if len(self.cards) == 2 and self.value == 21:
+            return True
+        return False
 
 # class RockPaperScissors(commands.Cog):
 #     def __init__(self, bot):
