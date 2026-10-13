@@ -66,6 +66,9 @@ class Fun(commands.Cog, name="fun"):
             response = (
                 "🟢 🟡 🔴 How dare you! The magical 8 ball never lies! Shame on you! 🔴 🟡 🟢"
             )
+        elif ( "elliot" in request.lower()) or ("wordle" in request.lower()) or ("cheating" in request.lower()):
+            response = (
+                "🟢 🟡 🔴 Elliot Shreve CHEATS AT WORDLE! 🔴 🟡 🟢"     
         else:
             response = response_category[random.randint(0, len(response_category) - 1)]
         embed = tools.create_embed("Magic 8 Ball")
