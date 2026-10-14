@@ -256,16 +256,20 @@ class BlackjackView(discord.ui.View):
 
     def __init__(self, player: discord.User):
         self.player = player
-        self.deck = [value for value in self.values]
+        self.deck = []
+        for i in range(4):
+            for value in self.values:
+                self.deck.append(value)
+
         random.shuffle(self.deck)
 
         self.playerHand = Hand()
         self.dealerHand = Hand()
 
         for i in range(2):
-            self.playerHand.addCard()
+            self.playerHand.addCard(self.deck.pop())
         for i in range(2):
-            self.dealerHand.addCard()
+            self.dealerHand.addCard(self.deck.pop())
 
 # class RockPaperScissors(commands.Cog):
 #     def __init__(self, bot):
