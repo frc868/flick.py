@@ -205,13 +205,12 @@ class TicTacToe(commands.Cog):
             await msg.edit(embed=view.create_game_embed(), view=view)
 
 #Blackjack
-class PlayerHand:
+class Hand:
     def __init__(self):
-        #tuple is just an immutable list.
-        #storing 2 str's: 1st for the card value, and 2nd for the suit
-        self.cards: list[tuple[str, str]]
+        #stores a list of values for cards
+        self.cards: list[str]
     #adds an individual card to our list of cards
-    def __init__(self, card: tuple[str, str]):
+    def addCard(self, card: str):
         self.cards.append(card)
 
     def valueLogic(self) -> int:
@@ -239,6 +238,34 @@ class PlayerHand:
         if len(self.cards) == 2 and self.value == 21:
             return True
         return False
+
+class BlackjackStatus(enum.IntEnum):
+    GAME_IN_PROGRESS: int = 0
+    PLAYER_WINS_REGULAR: int = 1
+    PLAYER_WINS_BLACKJACK: int = 2
+    DEALER_WINS: int = 3
+
+class BlackjackView(discord.ui.View):
+    player = discord.User
+    deck = list[str]
+    player_hand = Hand
+    dealer_hand = Hand
+    state: BlackjackStatus = BlackjackStatus.GAME_IN_PROGRESS
+
+    values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+
+    def __init__(self, player: discord.User):
+        self.player = player
+        self.deck = [value for value in self.values]
+        random.shuffle(self.deck)
+
+        self.playerHand = Hand()
+        self.dealerHand = Hand()
+
+        for i in range(2):
+            self.playerHand.addCard()
+        for i in range(2):
+            self.dealerHand.addCard()
 
 # class RockPaperScissors(commands.Cog):
 #     def __init__(self, bot):
