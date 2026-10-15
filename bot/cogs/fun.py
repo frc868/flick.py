@@ -192,10 +192,11 @@ class Fun(commands.Cog, name="fun"):
             )
         )
 
+    #Coins noiw have emojis,
     @commands.hybrid_command(description="Flip a coin!")
     async def coin(self, ctx: commands.Context):
         await ctx.send(
-            embed=tools.create_embed("Coin Flip", random.choice(["Heads!", "Tails!"]))
+            embed=tools.create_embed("Coin Flip", random.choice([":statue_of_liberty:Heads!:statue_of_liberty: ", ":classical_building:Tails!:classical_building:"]))
         )
 
     @commands.hybrid_command(description="Where's my wago?")
@@ -219,3 +220,16 @@ class Fun(commands.Cog, name="fun"):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Fun(bot))
+
+
+
+# Aaron told me to do this. Fishing Project.
+
+ @commands.hybrid_command(description="Go fishing!")
+    async def fish(self, ctx: commands.Context):
+        await ctx.send(
+            embed=tools.create_embed("Fishing", random.choice(["🌈 Rainbow Exotic", "💎﻿Diamond Mythic", "🥇Gold Legendary", "🥈Silver Epic", "🥉Bronze Rare", "🟥Red Uncommon", "🟩Green Uncommon", "🟨Yellow Uncommon", "🟦Blue Uncommmon", "🟫Brown Uncommon", "⬛Black Common", "⬜White Common", "🟥Red", "🟩Green", "🟨Yellow", "🟦Blue", "🟫Brown", "⬛Black", "⬜White"]) +random.choice([" tuna", " salmon", " bass", " marlin", " snapper", " mackerel", " herring", " barracuda", " flounder", "trout"]) + random.choice([641, 142, 190, 533, 514, 86, 245, 39, 95, 11, 43, 47, 64, 20, 10, 4]))
+            
+        )
+
+
