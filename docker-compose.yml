@@ -1,0 +1,7 @@
+services:
+  flick:
+    image: ghcr.io/frc868/flick.py:latest
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      TOKEN: ${TOKEN:?please set a token secret}
