@@ -1,5 +1,7 @@
 import random
 
+import math
+
 import aiohttp
 import discord
 import requests
@@ -598,39 +600,44 @@ class Fun(commands.Cog, name="fun"):
 
         fish = ""
         totalrarity = 0
+        rarities = []
 
         for i in range(random.randint(1, 3)):
             rarity = random.randint(0,len(adjs)-1)
             fish += adjs[rarity] + " "
-            totalrarity += rarity
+            rarities.append(rarity)
 
+        totalrarity += max(rarities)
         rarity = random.randint(0,len(nouns)-1)
         fish += nouns[rarity] + "fish"
         totalrarity += rarity
 
-        totalrarity /= (3 * len(adjs) + len(nouns) - 4)
+        mx = (len(adjs) + len(nouns) - 2)
+
+        p = totalrarity / mx
 
         color = "30"
         punctuation = "."
-        text = "Better luck next time."
+        text = "dang."
 
-        if(totalrarity) > 0.2:
+        if(p) > 0.2:
             color = "32"
-        if(totalrarity) > 0.4:
+            text = "Better luck next time."
+        if(p) > 0.4:
             color = "36"
             text = "Pretty mid."
-        if(totalrarity) > 0.6:
+        if(p) > 0.6:
             color = "35"
             punctuation = "!"
-            text = "wow"
-        if(totalrarity) > 0.8:
+            text = "wow."
+        if(p) > 0.8:
             color = "33"
-            text = ":shaking_face: wow :shaking_face:"
+            text = "🫨 wow 🫨"
 
         
         
         embed = tools.create_embed("Lake")
-        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text}```", inline=False)
+        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text} rarity: 1 in {int(round(10 ** ((100*p) / 16),-2))}```", inline=False)
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(
