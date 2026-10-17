@@ -605,24 +605,32 @@ class Fun(commands.Cog, name="fun"):
             totalrarity += rarity
 
         rarity = random.randint(0,len(nouns)-1)
-        fish += nouns[rarity] + "fish."
+        fish += nouns[rarity] + "fish"
         totalrarity += rarity
 
         totalrarity /= (3 * len(adjs) + len(nouns) - 4)
 
         color = "30"
+        punctuation = "."
+        text = "Better luck next time."
 
         if(totalrarity) > 0.2:
             color = "32"
         if(totalrarity) > 0.4:
             color = "36"
+            text = "Pretty mid."
         if(totalrarity) > 0.6:
             color = "35"
+            punctuation = "!"
+            text = "wow"
         if(totalrarity) > 0.8:
             color = "33"
+            text = ":shaking_face: wow :shaking_face:"
+
+        
         
         embed = tools.create_embed("Lake")
-        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}\u001b[0m\n```", inline=False)
+        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text}```", inline=False)
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(
