@@ -634,10 +634,10 @@ class Fun(commands.Cog, name="fun"):
             color = "33"
             text = "🫨 wow 🫨"
 
-        
+        displayrarity = int(round(10 ** (1 + 5*(100*p-1)/99),-1))
         
         embed = tools.create_embed("Lake")
-        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text} rarity: 1 in {int(round(10 ** ((100*p) / 16),-2))}```", inline=False)
+        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text}```", inline=False)
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(
