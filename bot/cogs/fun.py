@@ -622,7 +622,7 @@ class Fun(commands.Cog, name="fun"):
             color = "33"
         
         embed = tools.create_embed("Lake")
-        embed.add_field(name="fish", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}\u001b[0m\n```", inline=False)
+        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}\u001b[0m\n```", inline=False)
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(
