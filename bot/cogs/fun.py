@@ -608,11 +608,12 @@ class Fun(commands.Cog, name="fun"):
             rarities.append(rarity)
 
         totalrarity += max(rarities)
+
         rarity = random.randint(0,len(nouns)-1)
         fish += nouns[rarity] + "fish"
-        totalrarity += rarity
+        totalrarity += rarity * 4
 
-        mx = (len(adjs) + len(nouns) - 2)
+        mx = (len(adjs) + len(nouns) * 4 - 5)
 
         p = totalrarity / mx
 
@@ -633,11 +634,9 @@ class Fun(commands.Cog, name="fun"):
         if(p) > 0.8:
             color = "33"
             text = "🫨 wow 🫨"
-
-        displayrarity = int(round(10 ** (1 + 5*(100*p-1)/99),-1))
         
         embed = tools.create_embed("Lake")
-        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text}```", inline=False)
+        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text} (top {round(100 - 100*p)}%)```", inline=False)
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(
