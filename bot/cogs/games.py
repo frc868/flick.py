@@ -423,10 +423,8 @@ class BlackjackView(discord.ui.View):
 
         if self.playerHand.isBusted():
             self.resolveGame()
-            await interaction.response.edit_message(view=self)
-            await interaction.followup.send(embed=self.createGameEmbed())
-        else:
-            await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
+
+        await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
 
     @discord.ui.button(label="Stand", style=discord.ButtonStyle.red, emoji="🔴")
     async def standButton(
@@ -436,7 +434,6 @@ class BlackjackView(discord.ui.View):
         self.resolveGame()
 
         await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
-        await interaction.followup.send(embed=self.createGameEmbed())
 
 
 class Blackjack(commands.Cog):
