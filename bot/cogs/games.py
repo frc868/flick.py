@@ -344,22 +344,36 @@ class BlackjackView(discord.ui.View):
                 else:
                     outcome = "You had a higher score!"
 
-                embed.add_field(
-                    name="Result", 
-                    value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n 🎉**You WIN!** {outcome}", 
-                    inline=False
-                )
+                if self.dealerHand.isBusted():
+                    embed.add_field(
+                        name="Result", 
+                        value=f"**You WIN** :( {outcome}", 
+                        inline=False
+                    )
+                else:
+                    embed.add_field(
+                        name="Result", 
+                        value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n**You WIN** :( {outcome}", 
+                        inline=False
+                    )
             case BlackjackStatus.DEALER_WINS:
                 if self.playerHand.isBusted():
                     outcome = "You busted!"
                 else:
                     outcome = "Dealer had a higher score!"
 
-                embed.add_field(
-                    name="Result", 
-                    value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n **You LOSE** :( {outcome}", 
-                    inline=False
-                )
+                if self.playerHand.isBusted():
+                    embed.add_field(
+                        name="Result", 
+                        value=f"**You LOSE** :( {outcome}", 
+                        inline=False
+                    )
+                else:
+                    embed.add_field(
+                        name="Result", 
+                        value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n**You LOSE** :( {outcome}", 
+                        inline=False
+                    )
             case BlackjackStatus.PUSH:
                 embed.add_field(
                     name="Result",
@@ -388,7 +402,7 @@ class BlackjackView(discord.ui.View):
 
             if self.playerHand.isBusted() or self.playerHand.value() < self.dealerHand.value():
                 self.status = BlackjackStatus.DEALER_WINS
-            elif self.dealerHand.isBusted() or self.playerHand.value > self.dealerHand.value():
+            elif self.dealerHand.isBusted() or (self.playerHand.value() > self.dealerHand.value()):
                 self.status = BlackjackStatus.PLAYER_WINS_REGULAR
             else:
                 self.status = BlackjackStatus.PUSH
@@ -406,8 +420,10 @@ class BlackjackView(discord.ui.View):
 
         if self.playerHand.isBusted():
             self.resolveGame()
-
-        await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
+            await interaction.response.edit_message(view=self)
+            await interaction.followup.send(embed=self.createGameEmbed())
+        else:
+            await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
 
     @discord.ui.button(label="Stand", style=discord.ButtonStyle.red, emoji="🔴")
     async def standButton(
@@ -417,6 +433,7 @@ class BlackjackView(discord.ui.View):
         self.resolveGame()
 
         await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
+        await interaction.followup.send(embed=self.createGameEmbed())
 
 
 class Blackjack(commands.Cog):
