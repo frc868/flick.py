@@ -1,7 +1,5 @@
 import random
 
-import math
-
 import aiohttp
 import discord
 import requests
@@ -65,16 +63,13 @@ class Fun(commands.Cog, name="fun"):
             response_category = responses[2]
 
         if ("lying" in request.lower()) or ("lie" in request.lower()):
-            response = (
-                "🟢 🟡 🔴 How dare you! The magical 8 ball never lies! Shame on you! 🔴 🟡 🟢"
-            )
+            response = "🟢 🟡 🔴 How dare you! The magical 8 ball never lies! Shame on you! 🔴 🟡 🟢"
         else:
             response = response_category[random.randint(0, len(response_category) - 1)]
         embed = tools.create_embed("Magic 8 Ball")
         embed.add_field(name="Request", value=request, inline=False)
         embed.add_field(name="Answer", value=response, inline=False)
         await ctx.send(embed=embed)
-
 
     @commands.hybrid_command(description="Go fishing 🎣")
     async def fishing(self, ctx: commands.Context):
@@ -378,9 +373,8 @@ class Fun(commands.Cog, name="fun"):
             "gengis-khan-approved",
             "darth-vader-black",
             "spiderman-colored",
-            "santa-claus-red"
+            "santa-claus-red",
         ]
-
         nouns = [
             "water",
             "book",
@@ -595,25 +589,22 @@ class Fun(commands.Cog, name="fun"):
             "gengis-khan",
             "shrek",
             "hot-dog",
-            "vedanth"
+            "vedanth",
         ]
-
         fish = ""
         totalrarity = 0
         rarities = []
-
         for i in range(random.randint(1, 3)):
-            rarity = random.randint(0,len(adjs)-1)
+            rarity = random.randint(0, len(adjs) - 1)
             fish += adjs[rarity] + " "
             rarities.append(rarity)
-
+            
         totalrarity += max(rarities)
-
-        rarity = random.randint(0,len(nouns)-1)
+        rarity = random.randint(0, len(nouns) - 1)
         fish += nouns[rarity] + "fish"
         totalrarity += rarity * 4
 
-        mx = (len(adjs) + len(nouns) * 4 - 5)
+        mx = len(adjs) + len(nouns) * 4 - 5
 
         p = totalrarity / mx
 
@@ -621,22 +612,26 @@ class Fun(commands.Cog, name="fun"):
         punctuation = "."
         text = "dang."
 
-        if(p) > 0.2:
+        if (p) > 0.2:
             color = "32"
             text = "Better luck next time."
-        if(p) > 0.4:
+        if (p) > 0.4:
             color = "36"
             text = "Pretty mid."
-        if(p) > 0.6:
+        if (p) > 0.6:
             color = "35"
             punctuation = "!"
             text = "wow."
-        if(p) > 0.8:
+        if (p) > 0.8:
             color = "33"
             text = "🫨 wow 🫨"
-        
+
         embed = tools.create_embed("Lake")
-        embed.add_field(name="Lake says...", value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text} (top {round(100 - 100*p)}%)```", inline=False)
+        embed.add_field(
+            name="Lake says...",
+            value=f"```ansi\nYou caught a \u001b[0;{color}m{fish}{punctuation}\u001b[0m {text} (top {round(100 - 100 * p)}%)```",
+            inline=False,
+        )
         await ctx.send(embed=embed)
 
     @commands.hybrid_command(
@@ -681,7 +676,7 @@ class Fun(commands.Cog, name="fun"):
     async def xkcd_(self, ctx: commands.Context, num: int | None = None):
         def callback(page: int) -> discord.Embed:
             comic = xkcd.getComic(page + 1)
-            embed = tools.create_embed(f"XKCD {page+1}: {comic.getTitle()}")
+            embed = tools.create_embed(f"XKCD {page + 1}: {comic.getTitle()}")
             embed.set_image(url=comic.getImageLink())
             embed.add_field(name="Alt Text", value=comic.getAltText())
             return embed
@@ -710,7 +705,9 @@ class Fun(commands.Cog, name="fun"):
     @commands.hybrid_command(description="Clapping.")
     @app_commands.describe(text="The text to clapify.")
     async def clap(self, ctx: commands.Context, *, text: str):
-        await ctx.send("👏".join(text.split()) if len(text.split()) > 1 else f"👏{text}👏")
+        await ctx.send(
+            "👏".join(text.split()) if len(text.split()) > 1 else f"👏{text}👏"
+        )
 
     @commands.hybrid_command(description="Clapping but with a custom separator.")
     @app_commands.describe(
