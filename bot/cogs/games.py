@@ -400,13 +400,16 @@ class BlackjackView(discord.ui.View):
             while self.dealerHand.value() < 17:
                 self.dealerHand.addCard(self.deck.pop())
 
-            if self.playerHand.isBusted() or self.playerHand.value() < self.dealerHand.value():
+            if self.playerHand.isBusted():
                 self.status = BlackjackStatus.DEALER_WINS
-            elif self.dealerHand.isBusted() or (self.playerHand.value() > self.dealerHand.value()):
+            elif self.dealerHand.isBusted():
                 self.status = BlackjackStatus.PLAYER_WINS_REGULAR
+            elif self.playerHand.value() > self.dealerHand.value():
+                self.status = BlackjackStatus.PLAYER_WINS_REGULAR
+            elif self.playerHand.value() < self.dealerHand.value():
+                self.status = BlackjackStatus.DEALER_WINS
             else:
                 self.status = BlackjackStatus.PUSH
-
         if self.status != BlackjackStatus.GAME_IN_PROGRESS:
             for child in self.children:
                 child.disabled = True
