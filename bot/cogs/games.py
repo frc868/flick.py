@@ -252,7 +252,7 @@ class Hand:
 
     def displayCards(self, hideFirstCard: bool):
         if hideFirstCard and len(self.cards) > 1:
-            return f" '{self.cards[1]}' "
+            return f" '{self.cards[0]}' "
         # This returns a each card seperated by a ,
         # eg: 3, A
         return ", ".join(f" '{card}' " for card in self.cards)
@@ -294,7 +294,7 @@ class BlackjackView(discord.ui.View):
         for i in range(2):
             self.dealerHand.addCard(self.deck.pop())
 
-        if Hand.isBlackjack(self.playerHand) or Hand.isBlackjack(self.dealerHand):
+        if self.playerHand.isBlackjack() or self.dealerHand.isBlackjack():
             self.resolveGame(instantCheck=True)
 
     async def interactionCheck(self, interaction: discord.Interaction) -> bool:
@@ -314,11 +314,11 @@ class BlackjackView(discord.ui.View):
         if hideDealerHand:
             dealerVal = "?"
         else:
-            dealerVal = str(self.dealerHand.value)
+            dealerVal = str(self.dealerHand.value())
 
         # Player hand
         embed.add_field(
-            name=f"{self.player.display_name}'s Hand [{self.playerHand.value()}]",
+            name=f"{self.player.display_name}'s Total [{self.playerHand.value()}]",
             value=self.playerHand.displayCards(hideFirstCard=False),
             # this element will take up its own line.
             inline=False,
@@ -326,8 +326,8 @@ class BlackjackView(discord.ui.View):
 
         # Dealer hand
         embed.add_field(
-            name="Dealer's Hand [{dealerVal}]",
-            value=self.dealerHand.displayCards(hideFirstCard=hideDealerHand),
+            name=f"Dealer's Total [{dealerVal}]",
+            value=self.dealerHand.displayCards(hideFirstCard=hideDealerHand) + ", ?",
             # this element will take up its own line.
             inline=False,
         )
@@ -339,22 +339,26 @@ class BlackjackView(discord.ui.View):
                     name="Result", value="🎰 **Blackjack**. You WIN!", inline=False
                 )
             case BlackjackStatus.PLAYER_WINS_REGULAR:
-                if Hand.isBusted(self.dealerHand):
+                if self.dealerHand.isBusted():
                     outcome = "Dealer busted!"
                 else:
                     outcome = "You had a higher score!"
 
                 embed.add_field(
-                    name="Result", value=f"🎉**You WIN!** {outcome}", inline=False
+                    name="Result", 
+                    value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n 🎉**You WIN!** {outcome}", 
+                    inline=False
                 )
             case BlackjackStatus.DEALER_WINS:
-                if Hand.isBusted(self.playerHand):
+                if self.playerHand.isBusted():
                     outcome = "You busted!"
                 else:
                     outcome = "Dealer had a higher score!"
 
                 embed.add_field(
-                    name="Result", value=f"**You LOSE** :( {outcome}", inline=False
+                    name="Result", 
+                    value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n **You LOSE** :( {outcome}", 
+                    inline=False
                 )
             case BlackjackStatus.PUSH:
                 embed.add_field(
@@ -372,28 +376,24 @@ class BlackjackView(discord.ui.View):
 
     def resolveGame(self, instantCheck: bool = False):
         if instantCheck:
-            if Hand.isBlackjack(self.playerHand) and Hand.isBlackjack(self.dealerHand):
+            if self.playerHand.isBlackjack() and self.dealerHand.isBlackjack():
                 self.status = BlackjackStatus.PUSH
-            elif Hand.isBlackjack(self.playerHand):
+            elif self.playerHand.isBlackjack():
                 self.status = BlackjackStatus.PLAYER_WINS_BLACKJACK
-            elif Hand.isBlackjack(self.dealerHand):
+            elif self.dealerHand.isBlackjack():
                 self.status = BlackjackStatus.DEALER_WINS
         else:
-            while self.dealerHand.value < 17:
+            while self.dealerHand.value() < 17:
                 self.dealerHand.addCard(self.deck.pop())
 
-            if Hand.isBusted(self.playerHand) or Hand.value(
-                self.playerHand
-            ) < Hand.value(self.dealerHand):
+            if self.playerHand.isBusted() or self.playerHand.value() < self.dealerHand.value():
                 self.status = BlackjackStatus.DEALER_WINS
-            elif Hand.isBusted(self.dealerHand) or Hand.value(
-                self.playerHand
-            ) > Hand.value(self.dealerHand):
+            elif self.dealerHand.isBusted() or self.playerHand.value > self.dealerHand.value():
                 self.status = BlackjackStatus.PLAYER_WINS_REGULAR
             else:
                 self.status = BlackjackStatus.PUSH
 
-        if self.status != BlackjackStatus.IN_PROGRESS:
+        if self.status != BlackjackStatus.GAME_IN_PROGRESS:
             for child in self.children:
                 child.disabled = True
             self.stop()
@@ -404,7 +404,7 @@ class BlackjackView(discord.ui.View):
     ):
         self.playerHand.addCard(self.deck.pop())
 
-        if Hand.isBusted(self.playerHand):
+        if self.playerHand.isBusted():
             self.resolveGame()
 
         await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
@@ -413,6 +413,7 @@ class BlackjackView(discord.ui.View):
     async def standButton(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        
         self.resolveGame()
 
         await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
@@ -846,7 +847,4 @@ class Blackjack(commands.Cog):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(TicTacToe(bot))
-
-
-async def setup(bot: commands.Bot):
     await bot.add_cog(Blackjack(bot))
