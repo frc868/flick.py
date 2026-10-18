@@ -205,6 +205,236 @@ class TicTacToe(commands.Cog):
             await msg.edit(embed=view.create_game_embed(), view=view)
 
 
+# Blackjack
+class Hand:
+    def __init__(self):
+        # stores a list of values for cards
+        self.cards: list[str] = []
+
+    # adds an individual card to our list of cards
+    def addCard(self, card: str):
+        self.cards.append(card)
+
+    def value(self) -> int:
+        total = 0
+        numAces = 0
+
+        for val in self.cards:
+            if val == "J" or val == "K" or val == "Q":
+                total += 10
+            elif val == "A":
+                numAces += 1
+                total += 11
+            else:
+                total += int(val)
+
+        # If your total is > 21, but you have an ace,
+        # You can make that ace equal to 1 instead of 11 (subtracting by 10)
+        # When you use an ace, it decreases the ace counter by 1
+        while total > 21 and numAces > 0:
+            total -= 10
+            numAces -= 1
+
+        return total
+
+    def isBusted(self) -> bool:
+        if self.value() > 21:
+            return True
+        return False
+
+    def isBlackjack(self) -> bool:
+        # Logic: If you have 2 cards and they add to 21,
+        # only way that can happen is thru having an Ace and a K, Q, or J
+        # AKA, a blackjack!
+        if len(self.cards) == 2 and self.value() == 21:
+            return True
+        return False
+
+    def displayCards(self, hideFirstCard: bool):
+        if hideFirstCard and len(self.cards) > 1:
+            return f" '{self.cards[1]}' "
+        # This returns a each card seperated by a ,
+        # eg: 3, A
+        return ", ".join(f" '{card}' " for card in self.cards)
+
+
+class BlackjackStatus(enum.IntEnum):
+    GAME_IN_PROGRESS: int = 0
+    PLAYER_WINS_REGULAR: int = 1
+    PLAYER_WINS_BLACKJACK: int = 2
+    DEALER_WINS: int = 3
+    # Push just means that the game ends in a draw
+    PUSH: int = 4
+
+
+class BlackjackView(discord.ui.View):
+    player = discord.User
+    deck = list[str]
+    playerHand = Hand
+    dealerHand = Hand
+    status: BlackjackStatus = BlackjackStatus.GAME_IN_PROGRESS
+
+    values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+
+    def __init__(self, player: discord.User):
+        super().__init__(timeout=60.0)
+        self.player = player
+        self.deck = []
+        for i in range(4):
+            for value in self.values:
+                self.deck.append(value)
+
+        random.shuffle(self.deck)
+
+        self.playerHand = Hand()
+        self.dealerHand = Hand()
+
+        for i in range(2):
+            self.playerHand.addCard(self.deck.pop())
+        for i in range(2):
+            self.dealerHand.addCard(self.deck.pop())
+
+        if Hand.isBlackjack(self.playerHand) or Hand.isBlackjack(self.dealerHand):
+            self.resolveGame(instantCheck=True)
+
+    async def interactionCheck(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id == self.player.id:
+            return True
+        else:
+            await interaction.response.send_message(
+                embed=tools.create_error_embed("You can't use another user's menu."),
+                ephemeral=True,
+            )
+            return False
+
+    def createGameEmbed(self) -> discord.Embed:
+        embed = discord.Embed(title="Blackjack")
+        hideDealerHand = self.status == BlackjackStatus.GAME_IN_PROGRESS
+
+        if hideDealerHand:
+            dealerVal = "?"
+        else:
+            dealerVal = str(self.dealerHand.value)
+
+        # Player hand
+        embed.add_field(
+            name=f"{self.player.display_name}'s Hand [{self.playerHand.value()}]",
+            value=self.playerHand.displayCards(hideFirstCard=False),
+            # this element will take up its own line.
+            inline=False,
+        )
+
+        # Dealer hand
+        embed.add_field(
+            name="Dealer's Hand [{dealerVal}]",
+            value=self.dealerHand.displayCards(hideFirstCard=hideDealerHand),
+            # this element will take up its own line.
+            inline=False,
+        )
+
+        # Match statement is basically just the equivalent of a switch statement in java
+        match self.status:
+            case BlackjackStatus.PLAYER_WINS_BLACKJACK:
+                embed.add_field(
+                    name="Result", value="🎰 **Blackjack**. You WIN!", inline=False
+                )
+            case BlackjackStatus.PLAYER_WINS_REGULAR:
+                if Hand.isBusted(self.dealerHand):
+                    outcome = "Dealer busted!"
+                else:
+                    outcome = "You had a higher score!"
+
+                embed.add_field(
+                    name="Result", value=f"🎉**You WIN!** {outcome}", inline=False
+                )
+            case BlackjackStatus.DEALER_WINS:
+                if Hand.isBusted(self.playerHand):
+                    outcome = "You busted!"
+                else:
+                    outcome = "Dealer had a higher score!"
+
+                embed.add_field(
+                    name="Result", value=f"**You LOSE** :( {outcome}", inline=False
+                )
+            case BlackjackStatus.PUSH:
+                embed.add_field(
+                    name="Result",
+                    value="🤝 **Push!** It's a tie.",
+                    inline=False,
+                )
+            case BlackjackStatus.GAME_IN_PROGRESS:
+                embed.add_field(
+                    name="Play some blackjack!",
+                    value="Choose an action below to continue",
+                    inline=False,
+                )
+        return embed
+
+    def resolveGame(self, instantCheck: bool = False):
+        if instantCheck:
+            if Hand.isBlackjack(self.playerHand) and Hand.isBlackjack(self.dealerHand):
+                self.status = BlackjackStatus.PUSH
+            elif Hand.isBlackjack(self.playerHand):
+                self.status = BlackjackStatus.PLAYER_WINS_BLACKJACK
+            elif Hand.isBlackjack(self.dealerHand):
+                self.status = BlackjackStatus.DEALER_WINS
+        else:
+            while self.dealerHand.value < 17:
+                self.dealerHand.addCard(self.deck.pop())
+
+            if Hand.isBusted(self.playerHand) or Hand.value(
+                self.playerHand
+            ) < Hand.value(self.dealerHand):
+                self.status = BlackjackStatus.DEALER_WINS
+            elif Hand.isBusted(self.dealerHand) or Hand.value(
+                self.playerHand
+            ) > Hand.value(self.dealerHand):
+                self.status = BlackjackStatus.PLAYER_WINS_REGULAR
+            else:
+                self.status = BlackjackStatus.PUSH
+
+        if self.status != BlackjackStatus.IN_PROGRESS:
+            for child in self.children:
+                child.disabled = True
+            self.stop()
+
+    @discord.ui.button(label="Hit", style=discord.ButtonStyle.blurple, emoji="🃏")
+    async def hitButton(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        self.playerHand.addCard(self.deck.pop())
+
+        if Hand.isBusted(self.playerHand):
+            self.resolveGame()
+
+        await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
+
+    @discord.ui.button(label="Stand", style=discord.ButtonStyle.red, emoji="🔴")
+    async def standButton(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        self.resolveGame()
+
+        await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
+
+
+class Blackjack(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.hybrid_command(description="Play some blackjack ♠️ ♥️ ♣️ ♦️")
+    async def blackjack(self, ctx: commands.Context):
+        view = BlackjackView(ctx.author)
+
+        # If the player already starts with a blackjack, disable buttons.
+        # Program will then check if the player wins, or if the player and the dealer tie (both have a blackjack)
+        if view.status != BlackjackStatus.GAME_IN_PROGRESS:
+            for child in view.children:
+                child.disabled = True
+
+        await ctx.send(embed=view.createGameEmbed(), view=view)
+
+
 # class RockPaperScissors(commands.Cog):
 #     def __init__(self, bot):
 #         self.bot = bot
@@ -616,3 +846,7 @@ class TicTacToe(commands.Cog):
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(TicTacToe(bot))
+
+
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Blackjack(bot))
