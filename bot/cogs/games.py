@@ -297,7 +297,7 @@ class BlackjackView(discord.ui.View):
         if self.playerHand.isBlackjack() or self.dealerHand.isBlackjack():
             self.resolveGame(instantCheck=True)
 
-    async def interactionCheck(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id == self.player.id:
             return True
         else:
@@ -312,9 +312,9 @@ class BlackjackView(discord.ui.View):
         hideDealerHand = self.status == BlackjackStatus.GAME_IN_PROGRESS
 
         if hideDealerHand:
-            dealerVal = "?"
+            dealerTotal = "?"
         else:
-            dealerVal = str(self.dealerHand.value())
+            dealerTotal = str(self.dealerHand.value())
 
         # Player hand
         embed.add_field(
@@ -325,12 +325,20 @@ class BlackjackView(discord.ui.View):
         )
 
         # Dealer hand
-        embed.add_field(
-            name=f"Dealer's Total [{dealerVal}]",
-            value=self.dealerHand.displayCards(hideFirstCard=hideDealerHand) + ", ?",
-            # this element will take up its own line.
-            inline=False,
-        )
+        if hideDealerHand:
+            embed.add_field(
+                name=f"Dealer's Total [{dealerTotal}]",
+                value=self.dealerHand.displayCards(hideFirstCard=hideDealerHand) + ", ?",
+                # this element will take up its own line.
+                inline=False,
+            )
+        else:
+            embed.add_field(
+                name=f"Dealer's Total [{dealerTotal}]",
+                value=self.dealerHand.displayCards(hideFirstCard=hideDealerHand),
+                # this element will take up its own line.
+                inline=False,
+            )
 
         # Match statement is basically just the equivalent of a switch statement in java
         match self.status:
@@ -357,6 +365,8 @@ class BlackjackView(discord.ui.View):
                         inline=False
                     )
             case BlackjackStatus.DEALER_WINS:
+                if self.playerHand.isBusted() and self.dealerHand.isBusted():
+                    outcome = "Dealer busted, *but you busted first*. How unfortunate!"
                 if self.playerHand.isBusted():
                     outcome = "You busted!"
                 else:
@@ -865,3 +875,4 @@ class Blackjack(commands.Cog):
 async def setup(bot: commands.Bot):
     await bot.add_cog(TicTacToe(bot))
     await bot.add_cog(Blackjack(bot))
+    
