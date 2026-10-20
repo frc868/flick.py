@@ -13,13 +13,12 @@ TODO
 
 Run `;roulette 10` (or `/roulette bet:10`) and click **Red**, **Black**,
 **Even**, or **Odd**. A win returns twice the stake, including the original
-bet. Green 0 loses on all four choices. Bets must be positive whole-dollar
-amounts within the player's balance. An unused menu expires without charging.
+bet. Green 0 loses on all four choices. Bets must be positive whole numbers of frisbees within the player's balance. An unused menu expires without charging.
 
-Everyone starts with **$50 in the server's first week of roulette in this bot session**. At
+Everyone starts with **50 frisbees in the server's first week of roulette in this bot session**. At
 **Sunday 12:00 a.m. America/New_York** (the start of Sunday), the new week starts
-with **$100 per player**. Winnings do not carry over. New players joining in a
-later week also start with $100 while the bot stays running. For the week beginning
+with **100 frisbees per player**. Winnings do not carry over. New players joining in a
+later week also start with 100 frisbees while the bot stays running. For the week beginning
 October 18, 2026, the next cutoff is October 25, 2026 at 12:00 a.m. Eastern.
 
 - `;roulettebalance`: check your current balance.
@@ -39,7 +38,7 @@ chosen channel. Configure that channel once with `;roulettechannel`.
 
 Balances, spin results, channels, and weekly standings are held in Python lists
 in memory. There is no database or save file. Restarting the bot or reloading
-the games extension clears all of these lists. Players then start at $50 again,
+the games extension clears all of these lists. Players then start at 50 frisbees again,
 and an admin must run `;roulettechannel` again. Previously posted Discord
 standings messages remain, but the bot cannot recover lost records or post
 missed standings from before the restart.
@@ -48,9 +47,3 @@ While the bot stays running, it checks for completed weeks every minute.
 Balances switch to the new week's allowance on the next interaction, even
 before the standings post. Failed sends are retried. Use one bot process:
 separate processes have separate lists.
-
-Run the roulette tests after installing `requirements.txt`:
-
-```sh
-python -m unittest discover -s tests -v
-```
