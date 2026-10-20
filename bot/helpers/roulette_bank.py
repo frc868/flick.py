@@ -1,7 +1,5 @@
 import secrets
-import sqlite3
 from datetime import datetime, timedelta
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
@@ -40,151 +38,100 @@ def is_winner(choice, number):
 
 
 class RouletteBank:
-    def __init__(self, path):
-        Path(path).parent.mkdir(parents=True, exist_ok=True)
-        self.db = sqlite3.connect(path)
-        self.db.row_factory = sqlite3.Row
-        self.db.executescript("""
-            CREATE TABLE IF NOT EXISTS guild_weeks (
-                guild_id INTEGER PRIMARY KEY,
-                first_week TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS balances (
-                guild_id INTEGER NOT NULL,
-                week TEXT NOT NULL,
-                user_id INTEGER NOT NULL,
-                balance INTEGER NOT NULL CHECK(balance >= 0),
-                PRIMARY KEY (guild_id, week, user_id)
-            );
-            CREATE TABLE IF NOT EXISTS rounds (
-                round_id INTEGER PRIMARY KEY,
-                guild_id INTEGER NOT NULL,
-                week TEXT NOT NULL,
-                user_id INTEGER NOT NULL,
-                choice TEXT NOT NULL,
-                bet INTEGER NOT NULL,
-                number INTEGER NOT NULL,
-                payout INTEGER NOT NULL,
-                balance INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS channels (
-                guild_id INTEGER PRIMARY KEY,
-                channel_id INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS announcements (
-                guild_id INTEGER NOT NULL,
-                week TEXT NOT NULL,
-                message_id INTEGER NOT NULL,
-                PRIMARY KEY (guild_id, week)
-            );
-        """)
-
-    def close(self):
-        self.db.close()
+    def __init__(self):
+        # These lists live only for this bot session.
+        self.guild_weeks = []
+        self.balances = []
+        self.rounds = []
+        self.channels = []
+        self.announcements = []
 
     def starting_balance(self, guild_id, week):
-        # Remember the server's first week so late joiners get the same allowance.
-        self.db.execute(
-            "INSERT OR IGNORE INTO guild_weeks VALUES (?, ?)", (guild_id, week)
-        )
-        first_week = self.db.execute(
-            "SELECT first_week FROM guild_weeks WHERE guild_id=?", (guild_id,)
-        ).fetchone()["first_week"]
-        return STARTING_BALANCE if week == first_week else WEEKLY_BALANCE
+        for guild in self.guild_weeks:
+            if guild["guild_id"] == guild_id:
+                return STARTING_BALANCE if week == guild["first_week"] else WEEKLY_BALANCE
+        self.guild_weeks.append({"guild_id": guild_id, "first_week": week})
+        return STARTING_BALANCE
+
+    def player(self, guild_id, user_id, week):
+        for row in self.balances:
+            if (row["guild_id"], row["user_id"], row["week"]) == (guild_id, user_id, week):
+                return row
+        row = {
+            "guild_id": guild_id, "user_id": user_id, "week": week,
+            "balance": self.starting_balance(guild_id, week),
+        }
+        self.balances.append(row)
+        return row
 
     def balance(self, guild_id, user_id, now=None):
-        week = current_week(now)
-        with self.db:
-            allowance = self.starting_balance(guild_id, week)
-            self.db.execute(
-                "INSERT OR IGNORE INTO balances VALUES (?, ?, ?, ?)",
-                (guild_id, week, user_id, allowance),
-            )
-        return self.db.execute(
-            "SELECT balance FROM balances WHERE guild_id=? AND week=? AND user_id=?",
-            (guild_id, week, user_id),
-        ).fetchone()["balance"]
+        return self.player(guild_id, user_id, current_week(now))["balance"]
 
     def play(self, round_id, guild_id, user_id, week, choice, bet, now=None):
         if choice not in CHOICES:
             raise ValueError("Choose red, black, even, or odd.")
         if type(bet) is not int or bet < 1:
             raise ValueError("Bet a positive whole-dollar amount.")
-
-        # Save the result and money together, before showing the animation.
-        # A repeated button event for this message cannot charge or pay twice.
-        with self.db:
-            self.db.execute("BEGIN IMMEDIATE")
-            previous = self.db.execute(
-                "SELECT * FROM rounds WHERE round_id=?", (round_id,)
-            ).fetchone()
-            if previous:
+        for previous in self.rounds:
+            if previous["round_id"] == round_id:
                 if (previous["guild_id"], previous["user_id"], previous["week"],
                         previous["choice"], previous["bet"]) != (
                         guild_id, user_id, week, choice, bet):
                     raise ValueError("This spin has already been played.")
-                return dict(previous)
-            if week != current_week(now):
-                raise ValueError("A new week started. Start a new roulette game to use your $100.")
-            allowance = self.starting_balance(guild_id, week)
-            self.db.execute(
-                "INSERT OR IGNORE INTO balances VALUES (?, ?, ?, ?)",
-                (guild_id, week, user_id, allowance),
-            )
-            balance = self.db.execute(
-                "SELECT balance FROM balances WHERE guild_id=? AND week=? AND user_id=?",
-                (guild_id, week, user_id),
-            ).fetchone()["balance"]
-            if bet > balance:
-                raise ValueError(f"You only have ${balance:,}. Choose a smaller bet.")
-            if balance + bet > 2**63 - 1:
-                raise ValueError("That bet would exceed the balance limit.")
-            number = secrets.randbelow(37)
-            payout = bet * 2 if is_winner(choice, number) else 0
-            balance += payout - bet
-            self.db.execute(
-                "UPDATE balances SET balance=? WHERE guild_id=? AND week=? AND user_id=?",
-                (balance, guild_id, week, user_id),
-            )
-            self.db.execute(
-                "INSERT INTO rounds VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (round_id, guild_id, week, user_id, choice, bet, number, payout, balance),
-            )
-            return dict(self.db.execute(
-                "SELECT * FROM rounds WHERE round_id=?", (round_id,)
-            ).fetchone())
+                return previous.copy()
+        if week != current_week(now):
+            raise ValueError("A new week started. Start a new roulette game to use your $100.")
+        player = self.player(guild_id, user_id, week)
+        balance = player["balance"]
+        if bet > balance:
+            raise ValueError(f"You only have ${balance:,}. Choose a smaller bet.")
+        if balance + bet > 2**63 - 1:
+            raise ValueError("That bet would exceed the balance limit.")
+        number = secrets.randbelow(37)
+        payout = bet * 2 if is_winner(choice, number) else 0
+        result = {
+            "round_id": round_id, "guild_id": guild_id, "user_id": user_id,
+            "week": week, "choice": choice, "bet": bet, "number": number,
+            "payout": payout, "balance": balance + payout - bet,
+        }
+        # No await here: record the spin before the animation yields to other clicks.
+        self.rounds.append(result)
+        player["balance"] = result["balance"]
+        return result.copy()
 
     def leaderboard(self, guild_id, week):
-        return self.db.execute(
-            "SELECT user_id, balance FROM balances WHERE guild_id=? AND week=? "
-            "ORDER BY balance DESC, user_id ASC", (guild_id, week)
-        ).fetchall()
+        rows = [row.copy() for row in self.balances
+                if row["guild_id"] == guild_id and row["week"] == week]
+        return sorted(rows, key=lambda row: (-row["balance"], row["user_id"]))
 
     def previous_week(self, guild_id, now=None):
-        return self.db.execute(
-            "SELECT MAX(week) FROM balances WHERE guild_id=? AND week<?",
-            (guild_id, current_week(now)),
-        ).fetchone()[0]
+        week = current_week(now)
+        return max((row["week"] for row in self.balances
+                    if row["guild_id"] == guild_id and row["week"] < week), default=None)
 
     def set_channel(self, guild_id, channel_id):
-        with self.db:
-            self.db.execute(
-                "INSERT INTO channels VALUES (?, ?) ON CONFLICT(guild_id) "
-                "DO UPDATE SET channel_id=excluded.channel_id", (guild_id, channel_id)
-            )
+        for channel in self.channels:
+            if channel["guild_id"] == guild_id:
+                channel["channel_id"] = channel_id
+                return
+        self.channels.append({"guild_id": guild_id, "channel_id": channel_id})
 
     def pending_announcements(self, now=None):
-        return self.db.execute(
-            "SELECT DISTINCT b.guild_id, b.week, c.channel_id FROM balances b "
-            "JOIN channels c ON b.guild_id=c.guild_id "
-            "LEFT JOIN announcements a ON b.guild_id=a.guild_id AND b.week=a.week "
-            "WHERE b.week<? AND a.message_id IS NULL ORDER BY b.week, b.guild_id",
-            (current_week(now),),
-        ).fetchall()
+        week = current_week(now)
+        pending = []
+        for channel in self.channels:
+            guild_id = channel["guild_id"]
+            weeks = sorted({row["week"] for row in self.balances
+                            if row["guild_id"] == guild_id and row["week"] < week})
+            for finished_week in weeks:
+                if not any(row["guild_id"] == guild_id and row["week"] == finished_week
+                           for row in self.announcements):
+                    pending.append({**channel, "week": finished_week})
+        return sorted(pending, key=lambda row: (row["week"], row["guild_id"]))
 
     def mark_announced(self, guild_id, week, message_id):
-        with self.db:
-            self.db.execute(
-                "INSERT OR IGNORE INTO announcements VALUES (?, ?, ?)",
-                (guild_id, week, message_id),
-            )
+        if not any(row["guild_id"] == guild_id and row["week"] == week
+                   for row in self.announcements):
+            self.announcements.append({
+                "guild_id": guild_id, "week": week, "message_id": message_id,
+            })
