@@ -8,3 +8,10 @@ Icon made by the wonderful [Bryce Castle](https://bcastle.net)!
 
 ## Commands
 TODO
+
+### Roulette
+
+- `;roulette <bet>`: Bet frisbees on Red, Black, Even, or Odd using the buttons.
+- `;roulettebalance`: Check your current week's frisbee balance.
+- `;rouletteleaderboard`: View this week's rankings, or add `true` to view the most recent completed week with players.
+- `;roulettechannel`: Set the current channel for weekly standings (requires Manage Server).
