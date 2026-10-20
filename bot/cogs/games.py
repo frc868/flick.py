@@ -1,11 +1,17 @@
+import asyncio
+import csv
 import enum
+import io
+import logging
+import os
 import random
 
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from bot.helpers import tools
+from bot.helpers.roulette_bank import RouletteBank, current_week, number_color
 
 # TODO: make chess and RPS work
 
@@ -354,14 +360,14 @@ class BlackjackView(discord.ui.View):
 
                 if self.dealerHand.isBusted():
                     embed.add_field(
-                        name="Result", 
-                        value=f"**You WIN** :) {outcome}", 
+                        name="Result",
+                        value=f"**You WIN** :) {outcome}",
                         inline=False
                     )
                 else:
                     embed.add_field(
-                        name="Result", 
-                        value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n**You WIN** :) {outcome}", 
+                        name="Result",
+                        value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n**You WIN** :) {outcome}",
                         inline=False
                     )
             case BlackjackStatus.DEALER_WINS:
@@ -376,18 +382,18 @@ class BlackjackView(discord.ui.View):
                     embed.add_field(
                         name="Result",
                         value="**You LOSE** :( Dealer busted, *but you busted first*... how unfortunate!",
-                        inline=False 
+                        inline=False
                     )
                 elif self.playerHand.isBusted() or self.dealerHand.isBlackjack():
                     embed.add_field(
-                        name="Result", 
-                        value=f"**You LOSE** :( {outcome}", 
+                        name="Result",
+                        value=f"**You LOSE** :( {outcome}",
                         inline=False
                     )
                 else:
                     embed.add_field(
-                        name="Result", 
-                        value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n**You LOSE** :( {outcome}", 
+                        name="Result",
+                        value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n**You LOSE** :( {outcome}",
                         inline=False
                     )
             case BlackjackStatus.PUSH:
@@ -446,7 +452,7 @@ class BlackjackView(discord.ui.View):
     async def standButton(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        
+
         self.resolveGame()
 
         await interaction.response.edit_message(embed=self.createGameEmbed(), view=self)
@@ -878,7 +884,261 @@ class Blackjack(commands.Cog):
 #         super().__init__(bot)
 
 
+class RouletteView(discord.ui.View):
+    def __init__(self, player, guild_id, bet, bank):
+        super().__init__(timeout=60.0)
+        self.player = player
+        self.guild_id = guild_id
+        self.bet = bet
+        self.bank = bank
+        self.week = current_week()
+        self.finished = False
+        self.msg = None
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id == self.player.id:
+            return True
+        await interaction.response.send_message(
+            embed=tools.create_error_embed("You can't use another user's menu."),
+            ephemeral=True,
+        )
+        return False
+
+    def disable_buttons(self):
+        for child in self.children:
+            child.disabled = True
+
+    def create_game_embed(self):
+        embed = discord.Embed(title="Roulette")
+        embed.description = (
+            f"{self.player.mention}, choose red, black, even, or odd.\n"
+            f"Bet: **${self.bet:,}**\n"
+            "A win returns twice your bet. Green 0 loses on all four choices."
+        )
+        embed.set_footer(text="Choose within 60 seconds. Your bet is placed when you click.")
+        return embed
+
+    async def on_timeout(self):
+        if self.finished:
+            return
+        self.finished = True
+        self.disable_buttons()
+        if self.msg:
+            try:
+                await self.msg.edit(
+                    embed=tools.create_embed("Roulette", "Time ran out. No money was taken."),
+                    view=self,
+                )
+            except discord.HTTPException:
+                pass
+
+    async def spin(self, interaction, choice):
+        if not await self.interaction_check(interaction):
+            return
+        if self.finished:
+            await interaction.response.send_message("This game has already ended.", ephemeral=True)
+            return
+        self.finished = True
+        self.disable_buttons()
+        try:
+            await interaction.response.defer()
+            await self.play(choice, interaction.message.id, interaction.edit_original_response)
+        finally:
+            self.stop()
+
+    async def play(self, choice, round_id, edit_message):
+        try:
+            try:
+                result = self.bank.play(
+                    round_id, self.guild_id, self.player.id,
+                    self.week, choice, self.bet,
+                )
+            except ValueError as error:
+                await edit_message(
+                    embed=tools.create_error_embed(str(error)), view=self
+                )
+                return
+
+            # A few message edits give the ball a short spin without flooding chat.
+            frames = ("⚪ 🔴 ⚫ 🔴 ⚫", "🔴 ⚪ ⚫ 🔴 ⚫", "🔴 ⚫ ⚪ 🔴 ⚫", "🔴 ⚫ 🔴 ⚪ ⚫")
+            try:
+                for frame in frames:
+                    embed = discord.Embed(
+                        title="Roulette — spinning...",
+                        description=f"{frame}\n\n${self.bet:,} on **{choice}**",
+                    )
+                    await edit_message(embed=embed, view=self)
+                    await asyncio.sleep(0.8)
+            except discord.HTTPException:
+                logging.getLogger(__name__).warning("Could not update roulette animation.")
+
+            color = number_color(result["number"])
+            emoji = {"red": "🔴", "black": "⚫", "green": "🟢"}[color]
+            embed = discord.Embed(title="Roulette")
+            embed.description = f"{emoji} **{result['number']} — {color.title()}**"
+            if result["payout"]:
+                outcome = f"You won! ${result['payout']:,} returned (${self.bet:,} profit)."
+            else:
+                outcome = f"You lost your ${self.bet:,} bet."
+            embed.add_field(name="Your bet", value=f"${self.bet:,} on {choice}", inline=False)
+            embed.add_field(name="Result", value=outcome, inline=False)
+            embed.add_field(name="Balance after this spin", value=f"${result['balance']:,}")
+            embed.set_footer(text=f"Week of {result['week']}")
+            await edit_message(embed=embed, view=self)
+        finally:
+            self.stop()
+
+    @discord.ui.button(label="Red", style=discord.ButtonStyle.red, emoji="🔴")
+    async def red(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.spin(interaction, "red")
+
+    @discord.ui.button(label="Black", style=discord.ButtonStyle.gray, emoji="⚫")
+    async def black(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.spin(interaction, "black")
+
+    @discord.ui.button(label="Even", style=discord.ButtonStyle.blurple)
+    async def even(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.spin(interaction, "even")
+
+    @discord.ui.button(label="Odd", style=discord.ButtonStyle.blurple)
+    async def odd(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.spin(interaction, "odd")
+
+
+class Roulette(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.bank = None
+
+    async def cog_load(self):
+        self.bank = RouletteBank(os.environ.get("ROULETTE_DB", "data/roulette.sqlite3"))
+        self.weekly_results.start()
+
+    async def cog_unload(self):
+        job = self.weekly_results.get_task()
+        self.weekly_results.cancel()
+        if job:
+            try:
+                await job
+            except asyncio.CancelledError:
+                pass
+        if self.bank:
+            self.bank.close()
+
+    @commands.hybrid_command(description="Bet game money on red, black, even, or odd.")
+    @commands.guild_only()
+    @commands.cooldown(1, 5.0, commands.BucketType.member)
+    @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
+    @app_commands.describe(bet="How many whole dollars to bet.")
+    async def roulette(self, ctx: commands.Context, bet: int):
+        balance = self.bank.balance(ctx.guild.id, ctx.author.id)
+        if bet < 1 or bet > balance:
+            await ctx.send(embed=tools.create_error_embed(
+                f"Bet a positive whole-dollar amount up to your balance of ${balance:,}. "
+                "If you have $0, your next $100 arrives Sunday at midnight Eastern."
+            ))
+            return
+        view = RouletteView(ctx.author, ctx.guild.id, bet, self.bank)
+        view.msg = await ctx.send(embed=view.create_game_embed(), view=view)
+        await view.wait()
+
+    @commands.hybrid_command(description="Check your roulette game money.")
+    @commands.guild_only()
+    async def roulettebalance(self, ctx: commands.Context):
+        balance = self.bank.balance(ctx.guild.id, ctx.author.id)
+        await ctx.send(embed=tools.create_embed(
+            "Roulette balance",
+            f"{ctx.author.mention}: **${balance:,}**\nResets to $100 Sunday at midnight Eastern.",
+        ))
+
+    def standings(self, guild_id, week):
+        rows = self.bank.leaderboard(guild_id, week)
+        lines = []
+        rank = 0
+        last_balance = None
+        for place, row in enumerate(rows, 1):
+            if row["balance"] != last_balance:
+                rank = place
+            lines.append(f"**{rank}.** <@{row['user_id']}> — ${row['balance']:,}")
+            last_balance = row["balance"]
+        return rows, lines
+
+    @commands.hybrid_command(description="Show this server's weekly roulette standings.")
+    @commands.guild_only()
+    @app_commands.describe(previous="Show the most recent completed week with players.")
+    async def rouletteleaderboard(self, ctx: commands.Context, previous: bool = False):
+        week = self.bank.previous_week(ctx.guild.id) if previous else current_week()
+        if not week:
+            await ctx.send("No completed roulette weeks yet.")
+            return
+        rows, lines = self.standings(ctx.guild.id, week)
+        if not rows:
+            await ctx.send("No roulette players this week yet. Starting balances are $50 in this server's first week and $100 each week after.")
+            return
+        embeds = []
+        for start in range(0, len(lines), 15):
+            embed = discord.Embed(
+                title=f"Roulette — week of {week}",
+                description="\n".join(lines[start:start + 15]),
+            )
+            embed.set_footer(text="Registered players · Final balance ranking")
+            embeds.append(embed)
+        view = tools.EmbedButtonPaginator(ctx.author, embeds) if len(embeds) > 1 else None
+        msg = await ctx.send(embed=embeds[0], view=view, allowed_mentions=discord.AllowedMentions.none())
+        if view:
+            view.msg = msg
+
+    @commands.hybrid_command(description="Use this channel for weekly roulette results.")
+    @commands.guild_only()
+    @commands.has_guild_permissions(manage_guild=True)
+    @app_commands.default_permissions(manage_guild=True)
+    async def roulettechannel(self, ctx: commands.Context):
+        permissions = ctx.channel.permissions_for(ctx.guild.me)
+        can_send = permissions.send_messages_in_threads if isinstance(ctx.channel, discord.Thread) else permissions.send_messages
+        if not (permissions.view_channel and can_send and permissions.embed_links and permissions.attach_files):
+            await ctx.send("I need View Channel, Send Messages, Embed Links, and Attach Files here.")
+            return
+        self.bank.set_channel(ctx.guild.id, ctx.channel.id)
+        await ctx.send("Weekly roulette results will be posted here after Sunday midnight Eastern.")
+
+    @tasks.loop(minutes=1)
+    async def weekly_results(self):
+        for pending in self.bank.pending_announcements():
+            guild_id, week = pending["guild_id"], pending["week"]
+            try:
+                channel = self.bot.get_channel(pending["channel_id"])
+                if channel is None:
+                    channel = await self.bot.fetch_channel(pending["channel_id"])
+                if channel.guild.id != guild_id:
+                    continue
+                rows, lines = self.standings(guild_id, week)
+                text = io.StringIO()
+                writer = csv.writer(text)
+                writer.writerow(["discord_user_id", "final_balance"])
+                writer.writerows((row["user_id"], row["balance"]) for row in rows)
+                embed = discord.Embed(
+                    title=f"Final roulette standings — week of {week}",
+                    description="\n".join(lines[:15]) + "\n\nEveryone starts the new week with $100.",
+                )
+                embed.set_footer(text="Full standings attached")
+                file = discord.File(io.BytesIO(text.getvalue().encode("utf-8")), filename=f"roulette-{week}.csv")
+                try:
+                    msg = await channel.send(
+                        embed=embed, file=file, allowed_mentions=discord.AllowedMentions.none()
+                    )
+                finally:
+                    file.close()
+                self.bank.mark_announced(guild_id, week, msg.id)
+            except discord.HTTPException:
+                logging.getLogger(__name__).exception("Could not post roulette standings; will retry.")
+
+    @weekly_results.before_loop
+    async def before_weekly_results(self):
+        await self.bot.wait_until_ready()
+
+
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(TicTacToe(bot))
     await bot.add_cog(Blackjack(bot))
-    
+    await bot.add_cog(Roulette(bot))
