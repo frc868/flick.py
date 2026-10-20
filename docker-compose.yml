@@ -5,3 +5,8 @@ services:
     mem_limit: 256m
     environment:
       TOKEN: ${TOKEN:?please set a token secret}
+    volumes:
+      - roulette-data:/app/data
+
+volumes:
+  roulette-data:
