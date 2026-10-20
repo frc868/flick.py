@@ -3,7 +3,6 @@ import csv
 import enum
 import io
 import logging
-import os
 import random
 
 import discord
@@ -1011,7 +1010,7 @@ class Roulette(commands.Cog):
         self.bank = None
 
     async def cog_load(self):
-        self.bank = RouletteBank(os.environ.get("ROULETTE_DB", "data/roulette.sqlite3"))
+        self.bank = RouletteBank()
         self.weekly_results.start()
 
     async def cog_unload(self):
@@ -1022,8 +1021,6 @@ class Roulette(commands.Cog):
                 await job
             except asyncio.CancelledError:
                 pass
-        if self.bank:
-            self.bank.close()
 
     @commands.hybrid_command(description="Bet game money on red, black, even, or odd.")
     @commands.guild_only()
