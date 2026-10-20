@@ -1,10 +1,6 @@
 import asyncio
-import os
-import sqlite3
-import tempfile
 import unittest
 from datetime import datetime, timezone
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -21,13 +17,7 @@ NEXT_MONDAY = datetime(2026, 10, 26, 12, tzinfo=timezone.utc)
 
 class BankTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.path = Path(self.temp.name) / 'roulette.sqlite3'
-        self.bank = RouletteBank(self.path)
-
-    def tearDown(self):
-        self.bank.close()
-        self.temp.cleanup()
+        self.bank = RouletteBank()
 
     def play(self, number=1, bet=10, choice='red', user=10, round_id=100, now=MONDAY):
         with patch('bot.helpers.roulette_bank.secrets.randbelow', return_value=number):
@@ -100,31 +90,45 @@ class BankTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.bank.play(100, guild, user, current_week(MONDAY), choice, bet, MONDAY)
 
-    def test_two_bank_connections_cannot_overspend(self):
+    def test_separate_menus_cannot_overspend(self):
         self.play(number=0, bet=40)
-        other = RouletteBank(self.path)
-        try:
-            with self.assertRaises(ValueError):
-                other.play(101, 1, 10, current_week(MONDAY), 'red', 40, MONDAY)
-            self.assertEqual(other.balance(1, 10, MONDAY), 10)
-        finally:
-            other.close()
+        with self.assertRaises(ValueError):
+            self.play(round_id=101, bet=40)
+        self.assertEqual(self.bank.balance(1, 10, MONDAY), 10)
 
-    def test_failed_round_write_rolls_back_money(self):
-        self.bank.balance(1, 10, MONDAY)
-        self.bank.db.execute("CREATE TRIGGER fail_round BEFORE INSERT ON rounds BEGIN SELECT RAISE(ABORT, 'test failure'); END")
-        with self.assertRaises(sqlite3.IntegrityError):
-            self.play()
+    def test_failed_roll_does_not_spend(self):
+        with patch('bot.helpers.roulette_bank.secrets.randbelow', side_effect=RuntimeError):
+            with self.assertRaises(RuntimeError):
+                self.bank.play(100, 1, 10, current_week(MONDAY), 'red', 10, MONDAY)
         self.assertEqual(self.bank.balance(1, 10, MONDAY), 50)
-        self.assertEqual(self.bank.db.execute('SELECT COUNT(*) FROM rounds').fetchone()[0], 0)
+        self.assertEqual(self.bank.rounds, [])
 
-    def test_restart_preserves_balance_and_duplicate_protection(self):
+    def test_restart_clears_money_history_and_channel(self):
         self.play()
-        self.bank.close()
-        self.bank = RouletteBank(self.path)
+        self.bank.set_channel(1, 999)
+        self.bank = RouletteBank()
+        self.assertEqual(self.bank.balance(1, 10, NEXT_MONDAY), 50)
+        self.assertEqual(self.bank.leaderboard(1, current_week(MONDAY)), [])
+        self.assertIsNone(self.bank.previous_week(1, NEXT_MONDAY))
+        self.assertEqual(self.bank.pending_announcements(NEXT_MONDAY), [])
+        self.assertEqual(self.bank.channels, [])
+        self.assertEqual(self.bank.rounds, [])
+
+    def test_returned_records_cannot_change_money_or_rounds(self):
+        result = self.play()
+        result['balance'] = 999
+        rows = self.bank.leaderboard(1, current_week(MONDAY))
+        rows[0]['balance'] = 999
         self.assertEqual(self.bank.balance(1, 10, MONDAY), 60)
+        self.assertEqual(self.play()['balance'], 60)
+
+    def test_channel_can_be_changed_without_duplicate_posts(self):
         self.play()
-        self.assertEqual(self.bank.balance(1, 10, MONDAY), 60)
+        self.bank.set_channel(1, 999)
+        self.bank.set_channel(1, 888)
+        pending = self.bank.pending_announcements(NEXT_MONDAY)
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0]['channel_id'], 888)
 
     def test_weekly_reset_preserves_final_standings(self):
         self.play()
@@ -171,7 +175,7 @@ class BankTests(unittest.TestCase):
         self.bank.mark_announced(1, pending[0]['week'], 123)
         self.assertEqual(len(self.bank.pending_announcements(NEXT_MONDAY)), 0)
 
-    def test_database_without_channel_keeps_standings(self):
+    def test_without_channel_keeps_standings_for_session(self):
         self.play()
         self.assertEqual(len(self.bank.pending_announcements(NEXT_MONDAY)), 0)
         self.assertEqual(self.bank.previous_week(1, NEXT_MONDAY), current_week(MONDAY))
@@ -196,12 +200,10 @@ class BankTests(unittest.TestCase):
         self.assertEqual(self.bank.balance(1, 12, after), 100)
         self.assertEqual(self.bank.balance(2, 10, after), 50)
 
-    def test_reset_discards_winnings_and_persists_first_week_after_restart(self):
+    def test_reset_discards_winnings_during_session(self):
         self.play(number=1, bet=50)
         self.play(number=1, bet=100, round_id=101)
         self.assertEqual(self.bank.balance(1, 10, MONDAY), 200)
-        self.bank.close()
-        self.bank = RouletteBank(self.path)
         self.assertEqual(self.bank.balance(1, 10, NEXT_MONDAY), 100)
         self.assertEqual(self.bank.balance(1, 11, NEXT_MONDAY), 100)
         self.play(number=0, bet=100, round_id=102, now=NEXT_MONDAY)
@@ -217,13 +219,8 @@ class BankTests(unittest.TestCase):
 
 class DiscordTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.bank = RouletteBank(Path(self.temp.name) / 'roulette.sqlite3')
+        self.bank = RouletteBank()
         self.player = SimpleNamespace(id=10, mention='<@10>')
-
-    async def asyncTearDown(self):
-        self.bank.close()
-        self.temp.cleanup()
 
     def interaction(self, user=10, message_id=100):
         return SimpleNamespace(
@@ -351,15 +348,20 @@ class DiscordTests(unittest.IsolatedAsyncioTestCase):
         view.stop()
 
     async def test_whole_review_extension_loads_and_unloads(self):
-        test_path = str(Path(self.temp.name) / 'extension.sqlite3')
-        with patch.dict(os.environ, {'ROULETTE_DB': test_path}):
-            async with commands.Bot(command_prefix=';', intents=discord.Intents.none()) as bot:
-                await bot.load_extension('bot.cogs.games')
-                names = {command.name for command in bot.commands}
-                self.assertTrue({'tictactoe', 'blackjack', 'roulette', 'roulettebalance', 'rouletteleaderboard', 'roulettechannel'} <= names)
-                self.assertEqual(len(bot.tree.get_commands()), 6)
-                await bot.unload_extension('bot.cogs.games')
-                self.assertIsNone(bot.get_cog('Roulette'))
+        async with commands.Bot(command_prefix=';', intents=discord.Intents.none()) as bot:
+            await bot.load_extension('bot.cogs.games')
+            names = {command.name for command in bot.commands}
+            self.assertTrue({'tictactoe', 'blackjack', 'roulette', 'roulettebalance', 'rouletteleaderboard', 'roulettechannel'} <= names)
+            self.assertEqual(len(bot.tree.get_commands()), 6)
+            cog = bot.get_cog('Roulette')
+            cog.bank.balance(1, 10)
+            with patch('bot.helpers.roulette_bank.secrets.randbelow', return_value=1):
+                cog.bank.play(100, 1, 10, current_week(), 'red', 10)
+            await bot.reload_extension('bot.cogs.games')
+            self.assertEqual(bot.get_cog('Roulette').bank.balance(1, 10), 50)
+            await bot.unload_extension('bot.cogs.games')
+            self.assertIsNone(bot.get_cog('Roulette'))
+
 
     async def test_command_offers_four_buttons_without_spending(self):
         cog = Roulette(SimpleNamespace())
