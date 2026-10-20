@@ -309,9 +309,9 @@ class BlackjackView(discord.ui.View):
 
     def createGameEmbed(self) -> discord.Embed:
         embed = discord.Embed(title="Blackjack")
-        hideDealerHand = self.status == BlackjackStatus.GAME_IN_PROGRESS
+        hideDealerTotal = self.status == BlackjackStatus.GAME_IN_PROGRESS
 
-        if hideDealerHand:
+        if hideDealerTotal:
             dealerTotal = "?"
         else:
             dealerTotal = str(self.dealerHand.value())
@@ -325,17 +325,17 @@ class BlackjackView(discord.ui.View):
         )
 
         # Dealer hand
-        if hideDealerHand:
+        if hideDealerTotal:
             embed.add_field(
                 name=f"Dealer's Total [{dealerTotal}]",
-                value=self.dealerHand.displayCards(hideFirstCard=hideDealerHand) + ", ?",
+                value=self.dealerHand.displayCards(hideFirstCard=hideDealerTotal) + ", ?",
                 # this element will take up its own line.
                 inline=False,
             )
         else:
             embed.add_field(
                 name=f"Dealer's Total [{dealerTotal}]",
-                value=self.dealerHand.displayCards(hideFirstCard=hideDealerHand),
+                value=self.dealerHand.displayCards(hideFirstCard=hideDealerTotal),
                 # this element will take up its own line.
                 inline=False,
             )
@@ -355,24 +355,30 @@ class BlackjackView(discord.ui.View):
                 if self.dealerHand.isBusted():
                     embed.add_field(
                         name="Result", 
-                        value=f"**You WIN** :( {outcome}", 
+                        value=f"**You WIN** :) {outcome}", 
                         inline=False
                     )
                 else:
                     embed.add_field(
                         name="Result", 
-                        value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n**You WIN** :( {outcome}", 
+                        value=f"Dealer's hidden card is {self.dealerHand.cards[1]}. Dealer is drawing... \n**You WIN** :) {outcome}", 
                         inline=False
                     )
             case BlackjackStatus.DEALER_WINS:
-                if self.playerHand.isBusted() and self.dealerHand.isBusted():
-                    outcome = "Dealer busted, *but you busted first*. How unfortunate!"
                 if self.playerHand.isBusted():
                     outcome = "You busted!"
+                elif self.dealerHand.isBlackjack():
+                    outcome = "Dealer had a blackjack!"
                 else:
                     outcome = "Dealer had a higher score!"
 
-                if self.playerHand.isBusted():
+                if self.playerHand.isBusted() and self.dealerHand.isBusted():
+                    embed.add_field(
+                        name="Result",
+                        value="**You LOSE** :( Dealer busted, *but you busted first*... how unfortunate!",
+                        inline=False 
+                    )
+                elif self.playerHand.isBusted() or self.dealerHand.isBlackjack():
                     embed.add_field(
                         name="Result", 
                         value=f"**You LOSE** :( {outcome}", 
